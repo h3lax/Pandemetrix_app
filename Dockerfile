@@ -1,13 +1,20 @@
-# Stage 1: Build Vue app !! Node 16 not compatible with Vite or Vue 3?
-FROM node:18-alpine AS builderc 
-WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm install
-COPY . .
-RUN npm run build
+# Use an official Node.js image
+FROM node:18-alpine
 
-# Stage 2: Serve with Nginx
-FROM nginx:alpine
-COPY --from=builder /app/dist /usr/share/nginx/html
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy package.json and package-lock.json (or yarn.lock) to the container
+COPY package.json package-lock.json ./
+
+# Install all dependencies (including dev dependencies for Vite)
+RUN npm install
+
+# Copy the rest of the application code
+COPY . .
+
+# Expose the port Vite uses (default is 5173)
+EXPOSE 5173
+
+# Run the Vite development server
+CMD ["npm", "run", "dev"]
