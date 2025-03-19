@@ -1,3 +1,6 @@
+/* tailwind.css */
+@import "tailwindcss";
+/* Dessous le formating Auto généré je le garde pour l'instant */
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;

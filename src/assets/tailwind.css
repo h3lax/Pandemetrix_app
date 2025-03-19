@@ -1,0 +1,8 @@
+/* A utiliser si on veux personnaliser le CSS de tailwind */
+/* Import Tailwind CSS */
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+/* Import custom CSS */
+@import "custom.css";

@@ -1,20 +1,20 @@
-# Use an official Node.js image
+# Use Node.js with a smaller image size
 FROM node:18-alpine
 
-# Set the working directory in the container
+# Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json (or yarn.lock) to the container
-COPY package.json package-lock.json ./
+# Copy package files first to optimize caching
+COPY package*.json ./
 
-# Install all dependencies (including dev dependencies for Vite)
+# Install dependencies
 RUN npm install
 
-# Copy the rest of the application code
+# Copy the rest of the app files
 COPY . .
 
-# Expose the port Vite uses (default is 5173)
+# Expose the Vite dev server port
 EXPOSE 5173
 
-# Run the Vite development server
+# Command to start the dev server
 CMD ["npm", "run", "dev"]
