@@ -1,17 +1,30 @@
+<script setup>
+    import { ref } from 'vue'
+    import NavItem from './NavItem.vue';
+    import Navbar from './Navbar.vue';
+
+    const props = defineProps({
+        title: {
+            type: String,
+            default: 'Pandemetrix'
+        },
+        subtitle: {
+            type: String,
+            default: 'pandemic predictive model'
+        }
+    })
+</script>
+
 <template>
-    <header class="min-h-screen bg-gradient-to-r from-purple-600 to-indigo-600 py-8">
-        <div class="max-w-6xl mx-auto px-4 flex-col justify-between justify-items-center items-start">
+    <header class="min-h-[60dvh] bg-gradient-to-r from-purple-600 to-indigo-600 py-8 flex flex-col">
+        <div class="w-full h-full pt-40 mx-auto px-4 shrink grow basis-auto flex flex-auto flex-col justify-between justify-items-center items-center">
             <div class="mt-8">
-                <div class="text-4xl font-extrabold text-white-900">Pandemetrix</div>
-                <p class="text-white-600 text-lg">pandemic predictive model</p>
+                <div class="text-7xl font-extrabold bg-gradient-to-r from-orange-600 to-yellow-400 inline-block text-transparent bg-clip-text">{{ title }}</div>
+                <p class="text-xl text-center mt-2 bg-gradient-to-r from-orange-600 to-yellow-400 text-transparent bg-clip-text">{{ subtitle }}</p>
             </div>
-            <div class="h-48"></div>
-            <nav class="flex items-end mt-2 gap-6">
-                <a href="#" class="px-3 py-1 rounded hover:bg-gray-200 text-sm">Accueil</a>
-                <a href="#" class="px-3 py-1 rounded hover:bg-gray-200 text-sm">Dashboard</a>
-                <a href="#" class="px-3 py-1 rounded hover:bg-gray-200 text-sm">Etl</a>
-                <a href="#" class="px-3 py-1 rounded hover:bg-gray-200 text-sm">A Propos</a>
-            </nav>
+            
+            <Navbar />
+           
 
         </div>
 

@@ -4,8 +4,8 @@ import Navbar from './Navbar.vue'
 </script>
 
 <template>
-    <section class="min-h-screen ms-84 me-84 rounded-3xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white flex-col items-center">
-        <div class="max-w-6xl mx-auto px-6 py-20 flex flex-col md:flex-row items-center">
+    <section class="min-h-screen ms-84 me-84 rounded-3xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white flex-col flex items-center">
+        <div class="max-w-8xl mx-auto px-6 py-20 flex flex-col md:flex-row items-center">
             <!-- Left: Text -->
             <div class="md:w-1/2 text-center md:text-left space-y-6">
             <h1 class="text-5xl font-extrabold text-gray-900">
