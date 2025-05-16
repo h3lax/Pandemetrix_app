@@ -1,3 +1,7 @@
 <template>
-   <div class="text-blue-950">Proute</div>
+   <ChartTest />
 </template>
+
+<script setup>
+   import ChartTest from './ChartTest.vue'
+</script>
