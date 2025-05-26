@@ -4,7 +4,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 //import Home from '@/components/Home.vue'
 import Home from '@/components/Home.vue'
 import About from '@/components/About.vue'
-//import About from '@/components/About.vue'
 //import Dashboard from '@/components/Dashboard.vue'
 
 //Pour du lazy loading on utilise une fonction callback pour importer le composant
