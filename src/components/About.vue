@@ -11,10 +11,4 @@
   </div>
 </template>
 
-<script setup>
-// Pas besoin de logique JS spécifique ici pour le moment
-</script>
 
-<style scoped>
-/* Tu peux ajouter des styles personnalisés ici si nécessaire */
-</style>
