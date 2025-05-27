@@ -5,7 +5,7 @@
     const items = ref([
         //{ name: 'Legal', route: '#' },
         { name: 'Accueil', route: 'Accueil' },
-        //{ name: 'Dashboard', route: '#' },
+        { name: 'Dashboard', route: 'Dashboard' },
         //{ name: 'Etl', route: '#' },
         { name: 'A Propos', route: 'About' },
         //{ name: 'Un autre', route: '#' },
