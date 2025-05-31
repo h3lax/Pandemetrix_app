@@ -8,6 +8,8 @@
         { name: 'Dashboard', route: 'Dashboard' },
         //{ name: 'Etl', route: '#' },
         { name: 'A Propos', route: 'About' },
+        { name: 'Feuille de données', route: 'Datasheet' },
+        //{ name: 'Graphique', route: 'ChartTest' }
         //{ name: 'Un autre', route: '#' },
         //{ name: 'Et là?', route: '#' }
     ]);

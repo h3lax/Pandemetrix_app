@@ -11,6 +11,8 @@ import { ref } from 'vue'
       <router-link to="/" class="text-gray-700 hover:text-blue-500">Accueil</router-link>
       <router-link to="/about" class="text-gray-700 hover:text-blue-500">À propos</router-link>
       <router-link to="/dashboard" class="text-gray-700 hover:text-blue-500">Dashboard</router-link>
+      <router-link to="/datasheet" class="text-gray-700 hover:text-blue-500">Feuille de données</router-link>
+
     </nav>
   </header>
 </template>
