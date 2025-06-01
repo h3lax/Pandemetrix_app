@@ -5,13 +5,16 @@
     const items = ref([
         //{ name: 'Legal', route: '#' },
         { name: 'Accueil', route: 'Accueil' },
+        { name: 'Upload Dataset', route: 'EtlManager' },
         { name: 'Dashboard', route: 'Dashboard' },
+        
         //{ name: 'Etl', route: '#' },
-        { name: 'A Propos', route: 'About' },
+        
         { name: 'Feuille de données', route: 'Datasheet' },
         //{ name: 'Graphique', route: 'ChartTest' }
         //{ name: 'Un autre', route: '#' },
         //{ name: 'Et là?', route: '#' }
+        { name: 'A Propos', route: 'About' },
     ]);
 </script>
 
