@@ -1,6 +1,6 @@
 <template>
   <div class="p-6 bg-gradient-to-br from-blue-100 to-cyan-100 min-h-screen">
-    <h1 class="text-3xl font-bold mb-6 text-center">Dashboard Pandemetrix</h1>
+    <h1 class="text-3xl font-bold mb-6 text-center" style="color: #333; font-weight: bold;">Dashboard Pandemetrix</h1>
 
     <!-- Graphique -->
     <div class="bg-white p-4 rounded-xl shadow max-w-4xl mx-auto">

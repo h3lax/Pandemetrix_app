@@ -21,26 +21,29 @@
           <p>Upload en cours...</p>
         </div>
         <div v-else-if="uploadSuccess" class="success-state">
-          <p style="color: green;">Fichier uploadé avec succès !</p>
-          <p style="font-size: 0.9em; color: #999;">{{ uploadedFile?.name }}</p>
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#eafaf1"/><path d="M8 12.5l2.5 2.5L16 9" stroke="#28a745" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+          <p style="color: #28a745; font-weight: bold;">Fichier uploadé avec succès !</p>
+          <p class="filename">{{ uploadedFile?.name }}</p>
         </div>
         <div v-else-if="uploadError" class="error-state">
-          <p style="color: red;">Erreur d'upload</p>
-          <p style="font-size: 0.9em; color: #a00;">{{ errorMessage }}</p>
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#faeaea"/><path d="M9 9l6 6M15 9l-6 6" stroke="#dc3545" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+          <p style="color: #dc3545; font-weight: bold;">Erreur d'upload</p>
+          <p class="filename">{{ errorMessage }}</p>
         </div>
         <div v-else class="default-state">
-          <p style="font-size: 1.1em; color: #999 font-weight: bold;">Glissez votre fichier CSV ici</p>
-          <p style="font-size: 0.9em; color: #999;">ou cliquez pour sélectionner</p>
+          <svg class="icon" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4" fill="#e6f0ff"/><path d="M12 8v6M9 11l3 3 3-3" stroke="#007bff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+          <p style="color: #007bff; font-weight: bold;">Glissez votre fichier CSV ici</p>
+          <p class="filename">ou cliquez pour sélectionner</p>
         </div>
       </div>
     </div>
-    <div v-if="uploadedFile && !isUploading" class="file-info" style="margin-top: 1em;">
-      <div style="display: flex; justify-content: space-between; align-items: center; background: #f5f5f5; padding: 0.7em; border-radius: 5px;">
+    <div v-if="uploadedFile && !isUploading" class="file-info">
+      <div class="file-card">
         <div>
-          <p style="font-weight: bold;">{{ uploadedFile.name }}</p>
-          <p style="font-size: 0.9em; color: #555;">{{ formatFileSize(uploadedFile.size) }}</p>
+          <p class="file-title">{{ uploadedFile.name }}</p>
+          <p class="file-size">{{ formatFileSize(uploadedFile.size) }}</p>
         </div>
-        <button @click="resetUpload" style="color: #a00; background: none; border: none; cursor: pointer;">Supprimer</button>
+        <button @click="resetUpload" class="delete-btn">Supprimer</button>
       </div>
     </div>
   </div>
@@ -128,33 +131,90 @@ const formatFileSize = (bytes) => {
 </script>
 
 <style scoped>
-.csv-uploader .drop-zone {
-  border: 2px dashed #bbb;
-  border-radius: 8px;
-  padding: 2em;
+.csv-uploader {
+  max-width: 420px;
+  margin: 0 auto;
+}
+.drop-zone {
+  border: 2px dashed #007bff;
+  border-radius: 12px;
+  padding: 2.5em 1em;
   text-align: center;
   cursor: pointer;
-  transition: border 0.2s, background 0.2s;
-  background: #fafafa;
+  background: #3f88d100;
+  transition: border 0.2s, background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  margin-bottom: 1em;
 }
-.csv-uploader .drop-zone.drag-over {
+.drop-zone.drag-over {
   border-color: #007bff;
   background: #e6f0ff;
+  box-shadow: 0 4px 16px rgba(0,123,255,0.08);
 }
-.csv-uploader .drop-zone.uploading {
+.drop-zone.uploading {
   border-color: #007bff;
   background: #e6f0ff;
   cursor: not-allowed;
 }
-.csv-uploader .drop-zone.success {
+.drop-zone.success {
   border-color: #28a745;
   background: #eafaf1;
 }
-.csv-uploader .drop-zone.error {
+.drop-zone.error {
   border-color: #dc3545;
   background: #faeaea;
 }
-.csv-uploader .spinner {
+.drop-content p {
+  margin: 0.5em 0 0 0;
+  font-size: 1.1em;
+}
+.drop-content .filename {
+  font-size: 0.95em;
+  color: #888;
+}
+.icon {
+  width: 38px;
+  height: 38px;
+  margin-bottom: 0.5em;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+.file-info {
+  margin-top: 1em;
+}
+.file-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f5f5f5;
+  padding: 0.7em 1em;
+  border-radius: 7px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.file-title {
+  color: #007bff;
+  font-weight: bold;
+  font-size: 1em;
+}
+.file-size {
+  font-size: 0.92em;
+  color: #888;
+}
+.delete-btn {
+  color: #fff;
+  background: #dc3545;
+  border: none;
+  border-radius: 4px;
+  padding: 0.4em 1em;
+  cursor: pointer;
+  font-size: 0.95em;
+  transition: background 0.2s;
+}
+.delete-btn:hover {
+  background: #b52a37;
+}
+.spinner {
   margin: 0 auto 1em auto;
   border: 4px solid #eee;
   border-top: 4px solid #007bff;

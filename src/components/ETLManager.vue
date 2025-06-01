@@ -1,58 +1,49 @@
 <template>
-  <div class="etl-manager" style="padding: 2em;">
-    <h1 style="font-size: 2em; font-weight: bold; margin-bottom: 1em;">Gestionnaire ETL</h1>
-    <div style="display: flex; flex-wrap: wrap; gap: 2em; margin-bottom: 2em;">
-      <div style="flex: 1 1 300px; min-width: 300px;">
-        <h2 style="font-size: 1.2em; font-weight: bold; margin-bottom: 0.7em;">Upload CSV</h2>
+  <div class="etl-manager">
+    <h1>Gestionnaire ETL</h1>
+    <div class="etl-flex">
+      <div class="etl-col">
+        <h2>Upload CSV</h2>
         <CSVUploader @upload-success="handleUploadSuccess" @upload-error="handleUploadError" />
       </div>
-      <div style="flex: 1 1 300px; min-width: 300px;">
-        <h2 style="font-size: 1.2em; font-weight: bold; margin-bottom: 0.7em;">Télécharger URL</h2>
+      <div class="etl-col">
+        <h2>Télécharger URL</h2>
         <URLDownloader @download-success="handleDownloadSuccess" @download-error="handleDownloadError" />
       </div>
     </div>
-    <div>
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1em;">
-        <h2 style="font-size: 1.2em; font-weight: bold;">Jobs ETL</h2>
-        <button
-          @click="refreshJobs"
-          :disabled="loadingJobs"
-          style="background: #555; color: white; padding: 0.5em 1em; border-radius: 4px; border: none; cursor: pointer;"
-        >
+    <div class="etl-jobs">
+      <div class="etl-jobs-header">
+        <h2>Jobs ETL</h2>
+        <button @click="refreshJobs" :disabled="loadingJobs">
           {{ loadingJobs ? 'Chargement...' : 'Actualiser' }}
         </button>
       </div>
-      <div v-if="loadingJobs" style="text-align: center; padding: 2em;">
+      <div v-if="loadingJobs" class="etl-jobs-loading">
         <div class="spinner"></div>
-        <p style="margin-top: 1em; color: #555;">Chargement des jobs...</p>
+        <p>Chargement des jobs...</p>
       </div>
-      <div v-else-if="jobs.length === 0" style="text-align: center; padding: 2em; color: #888;">
+      <div v-else-if="jobs.length === 0" class="etl-jobs-empty">
         Aucun job ETL trouvé
       </div>
       <div v-else>
         <div
           v-for="job in jobs"
           :key="job.id"
-          style="background: #fff; border: 1px solid #eee; border-radius: 6px; padding: 1em; margin-bottom: 1em; display: flex; justify-content: space-between; align-items: center;"
+          class="etl-job-card"
         >
           <div>
-            <h3 style="font-weight: bold;">{{ job.filename }}</h3>
-            <p style="font-size: 0.95em; color: #555;">{{ job.type }} - {{ formatDate(job.created_at) }}</p>
-            <span :style="getStatusStyle(job.status)" style="display: inline-block; padding: 0.2em 0.7em; border-radius: 3px; font-size: 0.9em; margin-top: 0.3em;">
+            <h3>{{ job.filename }}</h3>
+            <p>{{ job.type }} - {{ formatDate(job.created_at) }}</p>
+            <span :style="getStatusStyle(job.status)" class="etl-job-status">
               {{ job.status }}
             </span>
           </div>
-          <div style="display: flex; gap: 0.5em;">
-            <button
-              @click="viewJob(job)"
-              style="background: #007bff; color: white; padding: 0.4em 1em; border-radius: 4px; border: none; cursor: pointer;"
-            >
-              Voir
-            </button>
+          <div class="etl-job-actions">
+            <button @click="viewJob(job)">Voir</button>
             <button
               @click="deleteJob(job.id)"
               :disabled="deletingJobs.includes(job.id)"
-              style="background: #dc3545; color: white; padding: 0.4em 1em; border-radius: 4px; border: none; cursor: pointer;"
+              class="delete"
             >
               {{ deletingJobs.includes(job.id) ? '...' : 'Supprimer' }}
             </button>
@@ -118,6 +109,117 @@ onMounted(() => { refreshJobs() })
 </script>
 
 <style scoped>
+.etl-manager {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2em 1em;
+}
+.etl-manager h1 {
+  font-size: 2em;
+  font-weight: bold;
+  margin-bottom: 1.5em;
+  color: #007bff;
+  text-align: center;
+}
+.etl-flex {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2em;
+  margin-bottom: 2em;
+  justify-content: center;
+}
+.etl-col {
+  flex: 1 1 320px;
+  min-width: 320px;
+}
+.etl-col h2 {
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-bottom: 0.7em;
+  color: #333;
+}
+.etl-jobs {
+  margin-top: 2em;
+}
+.etl-jobs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1em;
+}
+.etl-jobs-header h2 {
+  font-size: 1.1em;
+  font-weight: bold;
+  color: #333;
+}
+.etl-jobs-header button {
+  background: #555;
+  color: white;
+  padding: 0.5em 1em;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background 0.2s;
+}
+.etl-jobs-header button:disabled {
+  background: #bbb;
+  cursor: not-allowed;
+}
+.etl-jobs-loading, .etl-jobs-empty {
+  text-align: center;
+  padding: 2em;
+  color: #888;
+}
+.etl-job-card {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 1.2em 1em;
+  margin-bottom: 1em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.etl-job-card h3 {
+  font-weight: bold;
+  font-size: 1em;
+  margin-bottom: 0.2em;
+}
+.etl-job-card p {
+  font-size: 0.95em;
+  color: #555;
+  margin-bottom: 0.2em;
+}
+.etl-job-status {
+  display: inline-block;
+  padding: 0.2em 0.7em;
+  border-radius: 3px;
+  font-size: 0.9em;
+  margin-top: 0.3em;
+}
+.etl-job-actions {
+  display: flex;
+  gap: 0.5em;
+}
+.etl-job-actions button {
+  background: #007bff;
+  color: white;
+  padding: 0.4em 1em;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.98em;
+  transition: background 0.2s;
+}
+.etl-job-actions button.delete {
+  background: #dc3545;
+}
+.etl-job-actions button:disabled {
+  background: #bbb;
+  cursor: not-allowed;
+}
 .spinner {
   margin: 0 auto;
   border: 4px solid #eee;
@@ -130,5 +232,11 @@ onMounted(() => { refreshJobs() })
 @keyframes spin {
   0% { transform: rotate(0deg);}
   100% { transform: rotate(360deg);}
+}
+@media (max-width: 800px) {
+  .etl-flex {
+    flex-direction: column;
+    gap: 1.5em;
+  }
 }
 </style>

@@ -1,11 +1,11 @@
 <template>
   <div class="p-6">
-    <h1 class="text-2xl font-bold mb-4">Feuille de données</h1>
+    <h1 class="text-2xl font-bold mb-4"style="color: #333;">Feuille de données</h1>
 
     <!-- Statut de l'API -->
     <div class="mb-4 flex gap-4">
       <div class="flex items-center gap-2">
-        <span class="text-sm font-medium">API:</span>
+        <span class="text-sm font-medium"style="color: #333;">API:</span>
         <span :class="apiStatus ? 'text-green-600' : 'text-red-600'" class="text-sm">
           {{ apiStatus ? 'ApiStatus ?✔️ Connecté' : 'ApiStatus ? ❌ Déconnecté' }}
         </span>
