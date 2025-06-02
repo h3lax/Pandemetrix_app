@@ -14,6 +14,7 @@
         //{ name: 'Graphique', route: 'ChartTest' }
         //{ name: 'Un autre', route: '#' },
         //{ name: 'Et là?', route: '#' }
+        { name: 'Analysis-IA', route: 'IAAnalysisPage' },
         { name: 'A Propos', route: 'About' },
     ]);
 </script>

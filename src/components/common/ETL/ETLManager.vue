@@ -56,7 +56,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import CSVUploader from './common/ETL/CSVUploader.vue'
+import CSVUploader from '../ETL/CSVUploader.vue'
 import URLDownloader from './URLDownloader.vue'
 import { getETLJobs, deleteETLJob } from '@/services/etlService'
 
