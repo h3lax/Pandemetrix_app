@@ -37,7 +37,7 @@ export const fetchData = async () => {
 // Fonctions pour vérifier le statut de l'API
 export const checkAppStatus = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/health`)
+    const response = await fetch(`${API_BASE_URL}/health/status`)
     return await response.json()
   } catch (error) {
     throw new Error('API non disponible')
@@ -46,7 +46,7 @@ export const checkAppStatus = async () => {
 
 export const checkDbStatus = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/db-check`)
+    const response = await fetch(`${API_BASE_URL}/health/db-check`)
     return await response.json()
   } catch (error) {
     throw new Error('Base de données non disponible')

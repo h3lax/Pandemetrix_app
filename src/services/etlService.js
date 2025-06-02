@@ -6,7 +6,7 @@ export const uploadCSV = async (file) => {
     const formData = new FormData()
     formData.append('file', file)
     
-    const response = await fetch(`${API_BASE_URL}/etl/upload-csv`, {
+    const response = await fetch(`${API_BASE_URL}/etl/upload`, {
       method: 'POST',
       body: formData
     })

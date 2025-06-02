@@ -88,8 +88,8 @@ const handleFile = async (file) => {
     showError('Veuillez sélectionner un fichier CSV')
     return
   }
-  if (file.size > 10 * 1024 * 1024) {
-    showError('Le fichier est trop volumineux (max 10MB)')
+  if (file.size > 40 * 1024 * 1024) {
+    showError('Le fichier est trop volumineux (max 40MB)')
     return
   }
   uploadedFile.value = file
