@@ -5,11 +5,17 @@
     const items = ref([
         //{ name: 'Legal', route: '#' },
         { name: 'Accueil', route: 'Accueil' },
-        //{ name: 'Dashboard', route: '#' },
+        { name: 'Upload Dataset', route: 'EtlManager' },
+        { name: 'Dashboard', route: 'Dashboard' },
+        
         //{ name: 'Etl', route: '#' },
-        { name: 'A Propos', route: 'About' },
+        
+        { name: 'Feuille de données', route: 'Datasheet' },
+        //{ name: 'Graphique', route: 'ChartTest' }
         //{ name: 'Un autre', route: '#' },
         //{ name: 'Et là?', route: '#' }
+        { name: 'Analysis-IA', route: 'IAAnalysisPage' },
+        { name: 'A Propos', route: 'About' },
     ]);
 </script>
 

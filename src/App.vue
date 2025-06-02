@@ -21,6 +21,7 @@ const items = ref([
   <div>
     <Head />
     <router-view />
+    
   </div>
 
 </template>
