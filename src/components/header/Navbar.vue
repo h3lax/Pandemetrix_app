@@ -3,17 +3,10 @@
     import NavItem from './NavItem.vue';
 
     const items = ref([
-        //{ name: 'Legal', route: '#' },
         { name: 'Accueil', route: 'Accueil' },
         { name: 'Upload Dataset', route: 'EtlManager' },
-        { name: 'Dashboard', route: 'Dashboard' },
-        
-        //{ name: 'Etl', route: '#' },
-        
-        { name: 'Feuille de données', route: 'Datasheet' },
-        //{ name: 'Graphique', route: 'ChartTest' }
-        //{ name: 'Un autre', route: '#' },
-        //{ name: 'Et là?', route: '#' }
+        { name: 'Dashboard', route: 'Dashboard' },  
+        { name: 'Status', route: 'Datasheet' },
         { name: 'Analysis-IA', route: 'IAAnalysisPage' },
         { name: 'A Propos', route: 'About' },
     ]);

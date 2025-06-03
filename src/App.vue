@@ -1,10 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import HelloWorld from './components/HelloWorld.vue'
-import Header from './components/Header.vue'
-import Head from './components/Hero2.vue';
-import Hero from './components/Hero3.vue';
-
+import Header from './components/header/Header.vue';
 
 const items = ref([
         { title: 'Legal', gradiant: 'bg-linear-to-r from-gray-600 via-blue-500 to-cyan-400' },
@@ -19,7 +15,7 @@ const items = ref([
 
 <template>
   <div>
-    <Head />
+    <Header />
     <router-view />
     
   </div>

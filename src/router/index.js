@@ -2,14 +2,14 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 // Import your components
 //import Home from '@/components/Home.vue'
-import Home from '@/components/Home.vue'
-import About from '@/components/common/About.vue'
-import Dashboard from '@/components/charts/Dashboard.vue'
-import Datasheet from '@/components/common/Datasheet.vue'
+import Home from '@/components/home/Home.vue'
+import About from '@/components/About.vue'
+import Dashboard from '@/components/dashboard/Dashboard.vue'
+import Datasheet from '@/components/Status.vue'
 
-import ETLManager from '@/components/common/ETL/ETLManager.vue'
-import CSVUploader from '@/components/common/ETL/CSVUploader.vue'
-import URLDownloader from '@/components/common/ETL/URLDownloader.vue'
+import ETLManager from '@/components/etl/EtlMain.vue'
+import CSVUploader from '@/components/etl/CSVUploader.vue'
+import URLDownloader from '@/components/etl/URLDownloader.vue'
 
 import IAAnalysisPage from '@/components/IAAnalysisPage.vue'
 
@@ -33,7 +33,7 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   // Mettre à jour le titre de la page
   if (to.meta.title) {
-    document.title = `${to.meta.title} - Mon App`
+    document.title = `${to.meta.title} | Pandemetrix`
   }
   next()
 })

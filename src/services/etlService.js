@@ -1,21 +1,22 @@
-// src/services/etlService.js
+import api from './api'
+
 const API_BASE_URL = 'http://127.0.0.1:5000/api'
 
 export const uploadCSV = async (file) => {
   try {
     const formData = new FormData()
     formData.append('file', file)
-    
-    const response = await fetch(`${API_BASE_URL}/etl/upload`, {
-      method: 'POST',
-      body: formData
+
+    const response = await api.post(
+      '/etl/upload',
+      {formData, title},
+      {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
     })
-    
-    if (!response.ok) {
-      throw new Error(`Erreur upload: ${response.status}`)
-    }
-    
-    return await response.json()
+
+    return response.data
   } catch (error) {
     console.error('Erreur upload CSV:', error)
     throw error
@@ -24,22 +25,15 @@ export const uploadCSV = async (file) => {
 
 export const downloadFromUrl = async (url, filename = null) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/etl/download-url`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ url, filename })
+    const response = await api.post('/etl/url', {
+      url,
+      filename
     })
-    
-    if (!response.ok) {
-      throw new Error(`Erreur téléchargement: ${response.status}`)
-    }
-    
-    return await response.json()
+
+    return response.data
   } catch (error) {
     console.error('Erreur téléchargement URL:', error)
-    throw error
+    throw new Error(`Erreur téléchargement: ${error.response?.status || error.message}`)
   }
 }
 
