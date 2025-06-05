@@ -7,7 +7,7 @@
         <CSVUploader @upload-success="handleUploadSuccess" @upload-error="handleUploadError" />
       </div>
       <div class="etl-col">
-        <h2>Télécharger URL</h2>
+        <h2>Télécharger depuis une URL</h2>
         <URLDownloader @download-success="handleDownloadSuccess" @download-error="handleDownloadError" />
       </div>
     </div>

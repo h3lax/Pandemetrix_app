@@ -1,38 +1,31 @@
 <template>
   <div class="url-downloader">
     <div class="url-form">
-      <h3>Télécharger depuis une URL</h3>
-      <form @submit.prevent="downloadFromURL">
-        <label>URL du fichier</label>
-        <input
-          v-model="url"
-          type="url"
-          placeholder="https://example.com/data.csv"
-          :disabled="isDownloading"
-          required
-        >
-        <label>Nom du fichier (optionnel)</label>
-        <input
-          v-model="filename"
-          type="text"
-          placeholder="mon-fichier.csv"
-          :disabled="isDownloading"
-        >
-        <button
-          type="submit"
-          :disabled="isDownloading || !url"
-        >
-          <span v-if="isDownloading" class="spinner-small"></span>
-          {{ isDownloading ? 'Téléchargement...' : 'Télécharger' }}
-        </button>
-      </form>
+      <h3>Au choix</h3>
+
+      <button
+        @click="() => startDownload('OMS_Daily')"
+        :disabled="isDownloading"
+      >
+        <span v-if="isDownloading && currentCode === 'OMS_Daily'" class="spinner-small"></span>
+        {{ isDownloading && currentCode === 'OMS_Daily' ? 'Téléchargement...' : 'Télécharger OMS' }}
+      </button>
+
+      <button
+        @click="() => startDownload('Color_Test')"
+        :disabled="isDownloading"
+      >
+        <span v-if="isDownloading && currentCode === 'Color_Test'" class="spinner-small"></span>
+        {{ isDownloading && currentCode === 'Color_Test' ? 'Téléchargement...' : 'Télécharger Couleur sample' }}
+      </button>
+
       <div v-if="downloadSuccess" class="success-msg">
         <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#eafaf1"/><path d="M8 12.5l2.5 2.5L16 9" stroke="#28a745" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-        <span> Fichier téléchargé avec succès !</span>
+        <span>Fichier téléchargé avec succès !</span>
       </div>
       <div v-if="downloadError" class="error-msg">
         <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#faeaea"/><path d="M9 9l6 6M15 9l-6 6" stroke="#dc3545" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-        <span> Erreur: {{ errorMessage }}</span>
+        <span>Erreur: {{ errorMessage }}</span>
       </div>
     </div>
   </div>
@@ -44,36 +37,37 @@ import { downloadFromUrl } from '@/services/etlService'
 
 const emit = defineEmits(['download-success', 'download-error'])
 
-const url = ref('')
-const filename = ref('')
 const isDownloading = ref(false)
+const currentCode = ref(null)
 const downloadSuccess = ref(false)
 const downloadError = ref(false)
 const errorMessage = ref('')
 
-const downloadFromURL = async () => {
-  if (!url.value) return
+const startDownload = async (code) => {
+  if (!code) return
   isDownloading.value = true
+  currentCode.value = code
   downloadSuccess.value = false
   downloadError.value = false
+
   try {
-    await downloadFromUrl(url.value, filename.value || null)
+    await downloadFromUrl(code) // juste le code maintenant
     downloadSuccess.value = true
     emit('download-success')
     setTimeout(() => {
-      url.value = ''
-      filename.value = ''
       downloadSuccess.value = false
     }, 3000)
   } catch (error) {
     downloadError.value = true
-    errorMessage.value = error.message
+    errorMessage.value = error.message || 'Une erreur est survenue.'
     emit('download-error', error)
   } finally {
     isDownloading.value = false
+    currentCode.value = null
   }
 }
 </script>
+
 
 <style scoped>
 .url-form {

@@ -47,11 +47,17 @@
       </div>
     </div>
   </div>
+  <TitleModal
+    v-if="showTitlePrompt"
+    @title-submitted="onTitleSubmitted"
+    @cancel="onTitleCancelled"
+  />
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { uploadCSV } from '@/services/etlService'
+import TitleModal from './TitleModal.vue'
 
 const emit = defineEmits(['upload-success', 'upload-error'])
 
@@ -62,6 +68,9 @@ const uploadSuccess = ref(false)
 const uploadError = ref(false)
 const errorMessage = ref('')
 const uploadedFile = ref(null)
+const showTitlePrompt = ref(false)
+const pendingFile = ref(null)
+const fileTitle = ref('')
 
 const handleDragOver = (e) => {
   e.preventDefault()
@@ -92,15 +101,30 @@ const handleFile = async (file) => {
     showError('Le fichier est trop volumineux (max 40MB)')
     return
   }
+  /*
+  let title = prompt("Quel est le titre du fichier ?", "Ex : Données mai 2025")
+  if (!title || title.trim().length === 0) {
+    showError("Vous devez entrer un titre pour le fichier.")
+    return
+  }
+  title = title.trim().toLocaleLowerCase()
+  console.log({
+    title: title,
+    fileName: file.fileNamename,
+  })
+  */
+
+  pendingFile.value = file
+  showTitlePrompt.value = true
   uploadedFile.value = file
-  await uploadFile(file)
+  await uploadFile(file, title);
 }
-const uploadFile = async (file) => {
+const uploadFile = async (file, title) => {
   isUploading.value = true
   uploadSuccess.value = false
   uploadError.value = false
   try {
-    await uploadCSV(file)
+    await uploadCSV(file, title)
     isUploading.value = false
     uploadSuccess.value = true
     emit('upload-success', { file })
@@ -121,12 +145,28 @@ const resetUpload = () => {
   uploadError.value = false
   if (fileInput.value) fileInput.value.value = ''
 }
+
 const formatFileSize = (bytes) => {
   if (bytes === 0) return '0 Bytes'
   const k = 1024
   const sizes = ['Bytes', 'KB', 'MB', 'GB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+}
+
+const onTitleSubmitted = async (title) => {
+  showTitlePrompt.value = false
+  const file = pendingFile.value
+  pendingFile.value = null
+
+  uploadedFile.value = file
+  await uploadFile(file, title.toLocaleLowerCase())
+}
+
+const onTitleCancelled = () => {
+  showTitlePrompt.value = false
+  pendingFile.value = null
+  showError("L'utilisateur a annulé la saisie du titre.")
 }
 </script>
 

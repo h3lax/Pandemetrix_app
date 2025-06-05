@@ -2,14 +2,18 @@ import api from './api'
 
 const API_BASE_URL = 'http://127.0.0.1:5000/api'
 
-export const uploadCSV = async (file) => {
+export const uploadCSV = async (file, title) => {
+  console.log('We arrive in uploadCSV', file, title)
+  if (!title) throw new Error('Le titre est requis avant l\'upload.')
+
   try {
     const formData = new FormData()
     formData.append('file', file)
+    formData.append('title', title)
 
     const response = await api.post(
       '/etl/upload',
-      {formData, title},
+      formData,
       {
       headers: {
         'Content-Type': 'multipart/form-data'
@@ -23,13 +27,11 @@ export const uploadCSV = async (file) => {
   }
 }
 
-export const downloadFromUrl = async (url, filename = null) => {
+export const downloadFromUrl = async (code) => {
   try {
-    const response = await api.post('/etl/url', {
-      url,
-      filename
-    })
-
+    const response = await api.post('/etl/download', 
+      {code}
+    )
     return response.data
   } catch (error) {
     console.error('Erreur téléchargement URL:', error)
