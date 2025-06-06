@@ -39,6 +39,20 @@ export const downloadFromUrl = async (code) => {
   }
 }
 
+export const getCollections= async () => {
+  try {
+    const response = await api.get('/etl/collections')
+    
+    if (response.status !== 200) {
+      throw new Error(`Erreur récupération collections: ${response.status}`)
+    }
+    return response.data
+  } catch (error) {
+    console.error('Erreur récupération collections ETL:', error)
+    throw error
+  }
+}
+
 export const getETLJobs = async () => {
   try {
     const response = await fetch(`${API_BASE_URL}/etl/jobs`)

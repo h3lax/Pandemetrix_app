@@ -22,19 +22,17 @@
     <div v-if="loading" class="text-gray-500">Chargement des données...</div>
     <div v-else-if="error" class="text-red-600">Erreur : {{ error }}</div>
     <div v-else-if="!data.length" class="text-gray-500">Aucune donnée disponible</div>
-    <table v-else class="w-full table-auto border border-gray-300">
+    <table v-else class="w-full table-auto bg-blue-500 rounded-md mt-8">
       <thead>
-        <tr class="bg-gray-100">
-          <th v-for="(header, index) in headers" :key="index" class="px-4 py-2 border">
-            {{ header }}
-          </th>
+        <tr class="border-b-1 border-white">
+          <th class="p-4 uppercase">Nom</th>
+          <th class="p-4 uppercase">Documents</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(row, rowIndex) in data" :key="rowIndex">
-          <td v-for="(header, colIndex) in headers" :key="colIndex" class="px-4 py-2 border">
-            {{ row[header] }}
-          </td>
+        <tr v-for="item in data" :key="item.name" class="border-b-1 border-white">
+          <td class="p-2">{{ item.collection }}</td>
+          <td class="p-2 text-center">{{ item.count }}</td>
         </tr>
       </tbody>
     </table>
@@ -43,7 +41,8 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { fetchData, checkAppStatus, checkDbStatus } from '@/services/dataServices'
+import { checkAppStatus, checkDbStatus } from '@/services/dataServices'
+import { getCollections } from '@/services/etlService'
 
 const data = ref([])
 const headers = ref([])
@@ -76,9 +75,13 @@ onMounted(async () => {
   // Charger les données seulement si l'API est disponible
   if (apiStatus.value) {
     try {
-      const result = await fetchData()
-      data.value = Array.isArray(result) ? result : []
-      headers.value = data.value.length ? Object.keys(data.value[0]) : []
+      const result = await getCollections()
+      console.log('Données récupérées:', result)
+
+      // result.collections is now an array of { name, count }
+      data.value = Array.isArray(result.collections) ? result.collections : []
+
+      headers.value = ['Collection', 'Nombre de documents']
     } catch (err) {
       error.value = err.message
     }
