@@ -1,24 +1,23 @@
-import { describe, test, expect, jest } from '@jest/globals'
+import { uploadCSV, downloadFromUrl, getCollections } from '@/services/etlService'
 
-// Mock axios
-const mockAxios = {
-  post: jest.fn(),
-  get: jest.fn()
-}
+// Le mock est déjà dans tests/__mocks__/@/services/etlService.js
+jest.mock('@/services/etlService')
 
-jest.mock('axios', () => mockAxios)
-
-describe('etlService', () => {
-  test('API mock works', () => {
-    expect(mockAxios.post).toBeDefined()
-    expect(typeof mockAxios.post).toBe('function')
+describe('etlService.js', () => {
+  test('uploadCSV works with mock', async () => {
+    const file = new File(['test'], 'test.csv')
+    const result = await uploadCSV(file, 'test title')
+    expect(result.success).toBe(true)
   })
 
-  test('handles file upload structure', () => {
-    const file = new File(['test'], 'test.csv', { type: 'text/csv' })
-    const formData = new FormData()
-    formData.append('file', file)
-    
-    expect(formData).toBeDefined()
+  test('downloadFromUrl works with mock', async () => {
+    const result = await downloadFromUrl('OMS_Daily')
+    expect(result.success).toBe(true)
+  })
+
+  test('getCollections returns mock data', async () => {
+    const result = await getCollections()
+    expect(result.collections).toHaveLength(1)
+    expect(result.collections[0].collection).toBe('test_data')
   })
 })

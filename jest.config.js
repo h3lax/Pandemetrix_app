@@ -5,14 +5,13 @@ export default {
     '^.+\\.(js|jsx)$': 'babel-jest',
   },
   testMatch: [
-    '**/tests/unit/**/*.test.js',
-    '**/src/**/__tests__/*.test.js'
+    '**/tests/unit/**/*.test.js'
   ],
   moduleFileExtensions: ['js', 'json', 'vue'],
-    moduleNameMapper: {
+  moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy'
-    },
+  },
   setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
   collectCoverage: true,
   collectCoverageFrom: [
@@ -21,12 +20,10 @@ export default {
     '!src/router/**',
     '!**/node_modules/**'
   ],
-  coverageReporters: ['text', 'lcov', 'html'],
-  coverageDirectory: 'coverage',
-  testEnvironmentOptions: {
-    customExportConditions: ['node', 'node-addons']
-  },
   transformIgnorePatterns: [
     'node_modules/(?!(chart.js|vue-chartjs)/)'
-  ]
+  ],
+  testEnvironmentOptions: {
+    customExportConditions: ['node', 'node-addons']
+  }
 }
