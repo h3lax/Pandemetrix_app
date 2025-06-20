@@ -26,3 +26,22 @@ Cypress.Commands.add('checkAccessibility', () => {
     }
   })
 })
+
+Cypress.Commands.add('loginAsAdmin', () => {
+  // Mock login si nécessaire
+  cy.window().then((win) => {
+    win.localStorage.setItem('user', JSON.stringify({ role: 'admin' }))
+  })
+})
+
+Cypress.Commands.add('mockApiResponses', () => {
+  cy.intercept('GET', '**/api/**', { statusCode: 200, body: {} })
+})
+
+Cypress.Commands.add('testResponsiveDesign', (viewports) => {
+  viewports.forEach(viewport => {
+    cy.viewport(viewport.width, viewport.height)
+    cy.get('header').should('be.visible')
+    cy.contains('Pandemetrix').should('be.visible')
+  })
+})

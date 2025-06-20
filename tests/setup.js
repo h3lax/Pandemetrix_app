@@ -7,8 +7,14 @@ config.global.stubs = {
   'router-view': true
 }
 
-// Mock global objects
+// Mock des APIs globales
 global.ResizeObserver = jest.fn().mockImplementation(() => ({
+  observe: jest.fn(),
+  unobserve: jest.fn(),
+  disconnect: jest.fn(),
+}))
+
+global.IntersectionObserver = jest.fn().mockImplementation(() => ({
   observe: jest.fn(),
   unobserve: jest.fn(),
   disconnect: jest.fn(),
@@ -19,14 +25,34 @@ jest.mock('chart.js/auto', () => ({
   Chart: jest.fn().mockImplementation(() => ({
     destroy: jest.fn(),
     update: jest.fn(),
-    render: jest.fn()
+    render: jest.fn(),
+    resize: jest.fn()
   })),
   registerables: []
+}))
+
+// Mock vue-chartjs
+jest.mock('vue-chartjs', () => ({
+  Line: {
+    name: 'Line',
+    template: '<div class="mock-line-chart"></div>'
+  }
 }))
 
 // Mock window.fs pour les tests de lecture de fichiers
 Object.defineProperty(window, 'fs', {
   value: {
-    readFile: jest.fn()
+    readFile: jest.fn().mockResolvedValue('mock file content')
   }
 })
+
+// Mock fetch API
+global.fetch = jest.fn()
+
+// Mock console methods pour réduire le bruit dans les tests
+global.console = {
+  ...console,
+  log: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn()
+}
