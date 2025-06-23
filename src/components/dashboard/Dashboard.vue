@@ -82,8 +82,6 @@ onMounted(async () => {
 .bg-gradient-to-br { 
   background: linear-gradient(to bottom right, var(--color-primary-light), #e0f7fa);
 }
-.from-blue-100 { /* déjà géré par bg-gradient-to-br */ }
-.to-cyan-100 { /* déjà géré par bg-gradient-to-br */ }
 .min-h-screen { min-height: 100vh; }
 
 .text-3xl { font-size: 1.875rem; }
