@@ -78,7 +78,33 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-div {
-  height: 500px;
+.p-6 { padding: 1.5rem; }
+.bg-gradient-to-br { 
+  background: linear-gradient(to bottom right, var(--color-primary-light), #e0f7fa);
+}
+.from-blue-100 { /* déjà géré par bg-gradient-to-br */ }
+.to-cyan-100 { /* déjà géré par bg-gradient-to-br */ }
+.min-h-screen { min-height: 100vh; }
+
+.text-3xl { font-size: 1.875rem; }
+.font-bold { font-weight: bold; }
+.mb-6 { margin-bottom: 1.5rem; }
+.text-center { text-align: center; }
+
+.bg-white { background-color: var(--color-bg-primary); }
+.p-4 { padding: 1rem; }
+.rounded-xl { border-radius: 0.75rem; }
+.shadow { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
+.max-w-4xl { max-width: 56rem; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+
+.text-xl { font-size: 1.25rem; }
+.font-semibold { font-weight: 600; }
+.mb-4 { margin-bottom: 1rem; }
+
+div { height: 500px; }
+
+h1, h2 {
+  color: var(--color-text-primary);
 }
 </style>

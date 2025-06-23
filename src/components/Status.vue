@@ -94,7 +94,44 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.p-6 { padding: 1.5rem; }
+
+.text-2xl { font-size: 1.5rem; }
+.font-bold { font-weight: bold; }
+.mb-4 { margin-bottom: 1rem; }
+
+.mb-4 .flex { display: flex; }
+.gap-4 { gap: 1rem; }
+.items-center { align-items: center; }
+.gap-2 { gap: 0.5rem; }
+
+.text-sm { font-size: 0.875rem; }
+.font-medium { font-weight: 500; }
+
+.text-green-600 { color: var(--color-success); }
+.text-red-600 { color: var(--color-error); }
+.text-gray-500 { color: var(--color-text-secondary); }
+
+.w-full { width: 100%; }
+.table-auto { table-layout: auto; }
+.bg-blue-500 { background-color: var(--color-primary); }
+.rounded-md { border-radius: 0.375rem; }
+.mt-8 { margin-top: 2rem; }
+
+.border-b-1 { border-bottom: 1px solid; }
+.border-white { border-color: var(--color-bg-primary); }
+
+.p-4 { padding: 1rem; }
+.uppercase { text-transform: uppercase; }
+.p-2 { padding: 0.5rem; }
+.text-center { text-align: center; }
+
 table {
   border-collapse: collapse;
+  color: var(--color-bg-primary);
+}
+
+th, td {
+  color: var(--color-bg-primary);
 }
 </style>

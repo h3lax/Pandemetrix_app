@@ -71,97 +71,72 @@ const startDownload = async (code) => {
 
 <style scoped>
 .url-form {
-  max-width: 420px;
-  margin: 0 auto;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  max-width: 420px; margin: 0 auto; background: var(--color-bg-primary);
+  border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   padding: 2em 1.5em 1.5em 1.5em;
 }
+
 .url-form h3 {
-  font-size: 1.2em;
-  font-weight: bold;
-  margin-bottom: 1em;
-  color: #007bff;
+  font-size: 1.2em; font-weight: bold; margin-bottom: 1em;
+  color: var(--color-primary);
 }
+
 .url-form label {
-  display: block;
-  font-size: 0.98em;
-  margin-bottom: 0.3em;
-  margin-top: 1em;
-  color: #333;
+  display: block; font-size: 0.98em; margin-bottom: 0.3em; margin-top: 1em;
+  color: var(--color-text-primary);
 }
+
 .url-form input {
-  color: #222; /* ou #000 pour noir */
-  background: #fff;
-  width: 100%;
-  padding: 0.6em;
-  border: 1px solid #bbb;
-  border-radius: 5px;
-  margin-bottom: 0.5em;
-  font-size: 1em;
+  color: var(--color-text-primary); background: var(--color-bg-primary);
+  width: 100%; padding: 0.6em; border: 1px solid var(--color-border-dark);
+  border-radius: 5px; margin-bottom: 0.5em; font-size: 1em;
   transition: border 0.2s;
 }
+
 .url-form input:focus {
-  border-color: #007bff;
-  outline: none;
+  border-color: var(--color-primary); outline: none;
 }
+
 .url-form button {
-  width: 100%;
-  background: #007bff;
-  color: white;
-  padding: 0.8em;
-  border: none;
-  border-radius: 5px;
-  font-weight: bold;
-  font-size: 1em;
-  margin-top: 1em;
-  cursor: pointer;
-  transition: background 0.2s;
-  display: flex;
-  align-items: center;
+  width: 100%; background: var(--color-primary); color: var(--color-bg-primary);
+  padding: 0.8em; border: none; border-radius: 5px; font-weight: bold;
+  font-size: 1em; margin-top: 1em; cursor: pointer;
+  transition: background 0.2s; display: flex; align-items: center;
   justify-content: center;
 }
+
 .url-form button:disabled {
-  background: #b3d1fa;
-  cursor: not-allowed;
+  background: var(--color-text-disabled); cursor: not-allowed;
 }
+
 .success-msg, .error-msg {
-  margin-top: 1.2em;
-  border-radius: 6px;
-  padding: 1em;
-  display: flex;
-  align-items: center;
-  font-weight: bold;
-  font-size: 1em;
+  margin-top: 1.2em; border-radius: 6px; padding: 1em;
+  display: flex; align-items: center; font-weight: bold; font-size: 1em;
 }
+
 .success-msg {
-  background: #eafaf1;
-  color: #28a745;
-  border: 1px solid #28a745;
+  background: #eafaf1; color: var(--color-success);
+  border: 1px solid var(--color-success);
 }
+
 .error-msg {
-  background: #faeaea;
-  color: #dc3545;
-  border: 1px solid #dc3545;
+  background: #fef2f2; color: var(--color-error);
+  border: 1px solid var(--color-error);
 }
+
 .icon {
-  width: 28px;
-  height: 28px;
-  margin-right: 0.7em;
+  width: 28px; height: 28px; margin-right: 0.7em;
 }
+
 .spinner-small {
-  display: inline-block;
-  width: 18px;
-  height: 18px;
-  border: 2px solid #fff;
-  border-top: 2px solid #007bff;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-right: 0.5em;
+  display: inline-block; width: 18px; height: 18px;
+  border: 2px solid var(--color-bg-primary);
+  border-top: 2px solid var(--color-primary); border-radius: 50%;
+  animation: spin 1s linear infinite; margin-right: 0.5em;
 }
+
 @keyframes spin {
-  0% { transform: rotate(0deg);}
-  100% { transform: rotate(360deg);}
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style>

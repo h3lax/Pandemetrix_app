@@ -171,100 +171,86 @@ const onTitleCancelled = () => {
 </script>
 
 <style scoped>
-.csv-uploader {
-  max-width: 420px;
-  margin: 0 auto;
-}
+.csv-uploader { max-width: 420px; margin: 0 auto; }
+
 .drop-zone {
-  border: 2px dashed #007bff;
-  border-radius: 12px;
-  padding: 2.5em 1em;
-  text-align: center;
-  cursor: pointer;
-  background: #3f88d100;
-  transition: border 0.2s, background 0.2s, box-shadow 0.2s;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  margin-bottom: 1em;
+  border: 2px dashed var(--color-primary); border-radius: 12px;
+  padding: 2.5em 1em; text-align: center; cursor: pointer;
+  background: transparent; transition: border 0.2s, background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); margin-bottom: 1em;
 }
+
 .drop-zone.drag-over {
-  border-color: #007bff;
-  background: #e6f0ff;
-  box-shadow: 0 4px 16px rgba(0,123,255,0.08);
+  border-color: var(--color-primary); background: var(--color-primary-light);
+  box-shadow: 0 4px 16px rgba(21, 101, 192, 0.15);
 }
+
 .drop-zone.uploading {
-  border-color: #007bff;
-  background: #e6f0ff;
+  border-color: var(--color-primary); background: var(--color-primary-light);
   cursor: not-allowed;
 }
+
 .drop-zone.success {
-  border-color: #28a745;
-  background: #eafaf1;
+  border-color: var(--color-success); background: #eafaf1;
 }
+
 .drop-zone.error {
-  border-color: #dc3545;
-  background: #faeaea;
+  border-color: var(--color-error); background: #fef2f2;
 }
+
+.drop-zone:focus {
+  outline: 3px solid var(--color-focus); outline-offset: 2px;
+}
+
 .drop-content p {
-  margin: 0.5em 0 0 0;
-  font-size: 1.1em;
+  margin: 0.5em 0 0 0; font-size: 1.1em; color: var(--color-text-primary);
 }
+
 .drop-content .filename {
-  font-size: 0.95em;
-  color: #888;
+  font-size: 0.95em; color: var(--color-text-secondary);
 }
+
 .icon {
-  width: 38px;
-  height: 38px;
-  margin-bottom: 0.5em;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
+  width: 38px; height: 38px; margin-bottom: 0.5em;
+  display: block; margin-left: auto; margin-right: auto;
 }
-.file-info {
-  margin-top: 1em;
-}
+
+.default-state p { color: var(--color-primary); font-weight: bold; }
+.success-state p { color: var(--color-success); font-weight: bold; }
+.error-state p { color: var(--color-error); font-weight: bold; }
+
+.file-info { margin-top: 1em; }
+
 .file-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #f5f5f5;
-  padding: 0.7em 1em;
-  border-radius: 7px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--color-bg-secondary); padding: 0.7em 1em; border-radius: 7px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
 }
+
 .file-title {
-  color: #007bff;
-  font-weight: bold;
-  font-size: 1em;
+  color: var(--color-primary); font-weight: bold; font-size: 1em;
 }
+
 .file-size {
-  font-size: 0.92em;
-  color: #888;
+  font-size: 0.92em; color: var(--color-text-secondary);
 }
+
 .delete-btn {
-  color: #fff;
-  background: #dc3545;
-  border: none;
-  border-radius: 4px;
-  padding: 0.4em 1em;
-  cursor: pointer;
-  font-size: 0.95em;
-  transition: background 0.2s;
+  color: var(--color-bg-primary); background: var(--color-error);
+  border: none; border-radius: 4px; padding: 0.4em 1em;
+  cursor: pointer; font-size: 0.95em; transition: background 0.2s;
 }
-.delete-btn:hover {
-  background: #b52a37;
-}
+
+.delete-btn:hover { background: #b71c1c; }
+
 .spinner {
-  margin: 0 auto 1em auto;
-  border: 4px solid #eee;
-  border-top: 4px solid #007bff;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  animation: spin 1s linear infinite;
+  margin: 0 auto 1em auto; border: 4px solid var(--color-border);
+  border-top: 4px solid var(--color-primary); border-radius: 50%;
+  width: 32px; height: 32px; animation: spin 1s linear infinite;
 }
+
 @keyframes spin {
-  0% { transform: rotate(0deg);}
-  100% { transform: rotate(360deg);}
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style>
