@@ -1,46 +1,32 @@
 <script setup>
-import { defineProps } from 'vue'
 const props = defineProps({
-    name: { type: String, required: true },
-    to: { type: String, required: true }
+  name: { type: String, required: true },
+  to: { type: String, required: true }
 })
 </script>
 
 <template>
-    <router-link class="nav-item" :to="{ name: to }">{{ name }}</router-link>
+  <router-link 
+    class="nav-item" 
+    :to="{ name: to }"
+    :aria-current="$route.name === to ? 'page' : null"
+  >
+    {{ name }}
+  </router-link>
 </template>
 
 <style scoped>
 .nav-item {
-    display: inline-block;
-    padding: 0.75rem 1rem;
-    border-radius: 0.5rem;
-    font-size: 1rem;
-    text-decoration: none;
-    color: var(--color-bg-primary);
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid transparent;
-    transition: all 0.3s ease;
-    font-weight: 500;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0.75rem 1rem; border-radius: 4px; text-decoration: none;
+  color: var(--color-bg-primary); font-weight: 500; font-size: 0.9rem;
+  background: rgba(255,255,255,0.1); border: 2px solid transparent;
+  transition: all 0.2s ease; min-height: 44px;
 }
-
 .nav-item:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: rgba(255,255,255,0.2); transform: translateY(-1px);
 }
-
-.nav-item:focus {
-    outline: 2px solid var(--color-focus);
-    outline-offset: 2px;
-    background: rgba(255, 255, 255, 0.25);
-}
-
-.nav-item.router-link-active {
-    background: rgba(255, 255, 255, 0.3);
-    font-weight: bold;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+.nav-item[aria-current="page"] {
+  background: rgba(255,255,255,0.3); font-weight: 700;
 }
 </style>

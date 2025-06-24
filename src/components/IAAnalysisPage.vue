@@ -337,12 +337,12 @@ function formatDate(dateStr) {
 }
 
 .model-table th, .version-table th {
-  background: var(--color-primary); color: var(--color-bg-primary);
+  background: var(--color-primary); color: #000000 !important;
   font-weight: bold; font-size: 1.08em; letter-spacing: 0.5px;
 }
 
 .model-table td, .version-table td {
-  color: var(--color-text-primary); background: var(--color-primary-light);
+  color: #000000; background: var(--color-primary-light);
 }
 
 .model-table tr:nth-child(even), .version-table tr:nth-child(even) {
@@ -398,6 +398,7 @@ function formatDate(dateStr) {
   .timeline-content { padding: 0.5em 0.5em; }
   .model-table th, .model-table td, .version-table th, .version-table td {
     padding: 0.5em 0.2em; font-size: 0.95em;
+    color: #000000;
   }
 }
 </style>

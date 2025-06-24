@@ -1,26 +1,20 @@
 <script setup>
-    import { ref } from 'vue'
-    import NavItem from './NavItem.vue';
-    import Navbar from './Navbar.vue';
+import { ref } from 'vue'
+import NavItem from './NavItem.vue'
+import Navbar from './Navbar.vue'
 
-    const props = defineProps({
-        title: {
-            type: String,
-            default: 'Pandemetrix'
-        },
-        subtitle: {
-            type: String,
-            default: 'pandemic predictive model'
-        }
-    })
+const props = defineProps({
+  title: { type: String, default: 'Pandemetrix' },
+  subtitle: { type: String, default: 'pandemic predictive model' }
+})
 </script>
 
 <template>
-  <header role="banner" class="header-main">
+  <header role="banner" class="main-header">
     <div class="header-container">
-      <div class="header-content">
-        <h1 class="header-title">{{ title }}</h1>
-        <p class="header-subtitle">{{ subtitle }}</p>
+      <div class="branding">
+        <h1 class="site-title">{{ title }}</h1>
+        <p class="site-subtitle">{{ subtitle }}</p>
       </div>
       <Navbar />
     </div>
@@ -28,33 +22,22 @@
 </template>
 
 <style scoped>
-.header-main {
-  min-height: 60vh; 
+.main-header {
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-info) 100%);
-  padding: 2rem 0; display: flex; flex-direction: column;
+  color: var(--color-bg-primary); padding: 2rem 1rem; min-height: 50vh;
+  display: flex; align-items: center;
 }
-
 .header-container {
-  width: 100%; height: 100%; padding-top: 10rem; margin: 0 auto;
-  padding-left: 1rem; padding-right: 1rem; flex-grow: 1; flex-shrink: 1;
-  flex-basis: auto; display: flex; flex: 1 1 auto; flex-direction: column;
-  justify-content: space-between; align-items: center;
+  max-width: 1200px; margin: 0 auto; width: 100%;
+  display: flex; flex-direction: column; align-items: center; gap: 2rem;
 }
-
-.header-content { margin-top: 2rem; }
-
-.header-title {
-  font-size: 4.5rem; font-weight: 800; color: var(--color-warning);
-  display: inline-block; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+.branding { text-align: center; }
+.site-title {
+  font-size: clamp(2rem, 5vw, 4rem); font-weight: 800; margin-bottom: 0.5rem;
+  color: var(--color-warning); text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
 }
-
-.header-subtitle {
-  font-size: 1.25rem; text-align: center; margin-top: 0.5rem;
-  color: var(--color-warning); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-}
-
-@media (max-width: 768px) {
-  .header-title { font-size: 3rem; }
-  .header-subtitle { font-size: 1.125rem; }
+.site-subtitle {
+  font-size: clamp(1rem, 2.5vw, 1.5rem); opacity: 0.9;
+  color: var(--color-warning);
 }
 </style>
