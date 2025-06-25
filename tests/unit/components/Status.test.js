@@ -7,7 +7,7 @@ jest.mock('@/services/etlService')
 describe('Status.vue', () => {
   test('renders title', () => {
     const wrapper = mount(Status)
-    expect(wrapper.find('h1').text()).toBe('Feuille de données')
+    expect(wrapper.find('h1').text()).toBe('Statut du système')
   })
 
   test('shows loading state initially', () => {
@@ -18,8 +18,8 @@ describe('Status.vue', () => {
   test('displays API and DB status', async () => {
     const wrapper = mount(Status)
     await wrapper.vm.$nextTick()
-    expect(wrapper.text()).toContain('API:')
-    expect(wrapper.text()).toContain('DB:')
+    expect(wrapper.text()).toContain('API :')
+    expect(wrapper.text()).toContain('Base de données :')
   })
 
   test('renders table when data available', async () => {

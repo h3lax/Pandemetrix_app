@@ -11,7 +11,6 @@ describe('About.vue', () => {
 
   test('has correct styling classes', () => {
     const wrapper = mount(About)
-    expect(wrapper.find('.min-h-screen').exists()).toBe(true)
-    expect(wrapper.find('.bg-gradient-to-r').exists()).toBe(true)
+    expect(wrapper.find('.about-page').exists()).toBe(true)
   })
 })

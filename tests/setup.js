@@ -1,13 +1,16 @@
 import '@testing-library/jest-dom'
 import { config } from '@vue/test-utils'
 
-// Configuration globale Vue Test Utils
+config.global.mocks = {
+  $route: { name: 'Home' },
+  $router: { push: jest.fn() }
+}
+
 config.global.stubs = {
   'router-link': true,
   'router-view': true
 }
 
-// Mock des APIs globales
 global.ResizeObserver = jest.fn().mockImplementation(() => ({
   observe: jest.fn(),
   unobserve: jest.fn(),

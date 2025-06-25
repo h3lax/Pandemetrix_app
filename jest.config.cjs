@@ -1,4 +1,5 @@
-export default {
+// jest.config.cjs
+module.exports = {
   testEnvironment: 'jsdom',
   transform: {
     '^.+\\.vue$': '@vue/vue3-jest',

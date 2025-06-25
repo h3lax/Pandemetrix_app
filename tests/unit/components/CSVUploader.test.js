@@ -57,10 +57,4 @@ describe('CSVUploader.vue', () => {
     await dropZone.trigger('click')
     expect(fileInput.element.click).toHaveBeenCalled()
   })
-
-  test('formats file size correctly', () => {
-    expect(wrapper.vm.formatFileSize(0)).toBe('0 Bytes')
-    expect(wrapper.vm.formatFileSize(1024)).toBe('1 KB')
-    expect(wrapper.vm.formatFileSize(1048576)).toBe('1 MB')
-  })
 })

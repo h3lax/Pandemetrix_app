@@ -29,6 +29,6 @@ describe('Dashboard.vue', () => {
     })
     
     expect(wrapper.exists()).toBe(true)
-    expect(wrapper.find('h1').text()).toContain('Dashboard Pandemetrix')
+    expect(wrapper.find('h1').text()).toContain('Tableau de bord Pandemetrix')
   })
 })

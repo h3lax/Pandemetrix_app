@@ -4,7 +4,7 @@ import Header from '../../../src/components/header/Header.vue'
 describe('Header.vue', () => {
   test('renders default title and subtitle', () => {
     const wrapper = mount(Header)
-    expect(wrapper.text()).toContain('Pandemetrix')
+    expect(wrapper.find('h1').text()).toContain('Pandemetrix')
     expect(wrapper.text()).toContain('pandemic predictive model')
   })
 
