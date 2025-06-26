@@ -98,6 +98,20 @@ export class MLService {
     }
   }
 
+
+    /**
+   * Charge les CSV existants vers MongoDB
+   */
+  static async loadCSVData() {
+    try {
+      const response = await api.post('/ml/load-csv-data')
+      return response.data
+    } catch (error) {
+      console.error('Erreur chargement CSV:', error)
+      throw error
+    }
+  }
+
   /**
    * Recharge le modèle
    */
