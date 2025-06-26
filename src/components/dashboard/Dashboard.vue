@@ -6,149 +6,123 @@
         <div class="kpi-card infection">
           <div class="kpi-icon">🦠</div>
           <div class="kpi-content">
-            <span class="kpi-value">{{ kpiData?.infectionRate || 2.4 }}%</span>
-            <span class="kpi-label">Taux d'infection</span>
-            <span class="kpi-trend positive">{{ kpiData?.infectionChange || -0.8 }}%</span>
+            <span class="kpi-value">{{ kpiData?.totalCases || 0 }}</span>
+            <span class="kpi-label">Cas totaux</span>
+            <span class="kpi-trend" :class="casesChangeClass">{{ kpiData?.casesChange || 0 }}%</span>
           </div>
         </div>
         <div class="kpi-card mortality">
           <div class="kpi-icon">💀</div>
           <div class="kpi-content">
-            <span class="kpi-value">{{ kpiData?.mortalityRate || 1.2 }}%</span>
-            <span class="kpi-label">Taux de mortalité</span>
-            <span class="kpi-trend positive">{{ kpiData?.mortalityChange || -0.3 }}%</span>
+            <span class="kpi-value">{{ kpiData?.totalDeaths || 0 }}</span>
+            <span class="kpi-label">Décès totaux</span>
+            <span class="kpi-trend" :class="deathsChangeClass">{{ kpiData?.deathsChange || 0 }}%</span>
           </div>
         </div>
         <div class="kpi-card recovery">
-          <div class="kpi-icon">✅</div>
+          <div class="kpi-icon">⚕️</div>
           <div class="kpi-content">
-            <span class="kpi-value">{{ kpiData?.recoveryRate || 96.4 }}%</span>
-            <span class="kpi-label">Taux de guérison</span>
-            <span class="kpi-trend positive">{{ kpiData?.recoveryChange || 1.1 }}%</span>
+            <span class="kpi-value">{{ modelPerformance?.r2Score || 'N/A' }}</span>
+            <span class="kpi-label">Précision du modèle (R²)</span>
+            <span class="kpi-trend positive">{{ modelPerformance?.mae || 'N/A' }} MAE</span>
           </div>
         </div>
       </div>
     </div>
 
     <div class="dashboard-grid">
-      <!-- Carte avec indicateurs -->
-      <section class="map-section">
-        <h2>Répartition par région</h2>
-        <div class="map-container">
-          <div class="france-map">
-            <div class="region-indicator" style="top: 30%; left: 20%;" data-region="Bretagne">
-              <div class="indicator-dot" style="background: #ff6b6b;"></div>
-              <span class="indicator-value">1.2k</span>
-            </div>
-            <div class="region-indicator" style="top: 40%; left: 50%;" data-region="Île-de-France">
-              <div class="indicator-dot pulse" style="background: #ff4757;"></div>
-              <span class="indicator-value">5.8k</span>
-            </div>
-            <div class="region-indicator" style="top: 60%; left: 70%;" data-region="PACA">
-              <div class="indicator-dot" style="background: #ffa726;"></div>
-              <span class="indicator-value">2.1k</span>
-            </div>
-            <div class="region-indicator" style="top: 20%; left: 80%;" data-region="Grand Est">
-              <div class="indicator-dot" style="background: #26de81;"></div>
-              <span class="indicator-value">0.8k</span>
-            </div>
+      <!-- Section modèle ML -->
+      <section class="model-section">
+        <h2>État du modèle</h2>
+        <div v-if="mlHealth" class="model-status">
+          <div class="status-indicator" :class="mlHealth.ready_for_predictions ? 'ready' : 'not-ready'">
+            {{ mlHealth.ready_for_predictions ? '✅ Modèle actif' : '⚠️ Modèle inactif' }}
           </div>
-          <div class="map-legend">
-            <div class="legend-item">
-              <div class="legend-color" style="background: #ff4757;"></div>
-              <span>Risque élevé</span>
-            </div>
-            <div class="legend-item">
-              <div class="legend-color" style="background: #ffa726;"></div>
-              <span>Risque modéré</span>
-            </div>
-            <div class="legend-item">
-              <div class="legend-color" style="background: #26de81;"></div>
-              <span>Risque faible</span>
+          <div class="model-details">
+            <p><strong>Version:</strong> {{ modelInfo?.version || 'N/A' }}</p>
+            <p><strong>Pays supportés:</strong> {{ supportedCountries?.length || 0 }}</p>
+            <p><strong>Algorithme:</strong> {{ modelInfo?.algorithm || 'N/A' }}</p>
+          </div>
+        </div>
+
+        <!-- Prédiction rapide -->
+        <div v-if="mlHealth?.ready_for_predictions" class="quick-prediction">
+          <h3>Prédiction rapide</h3>
+          <div class="prediction-form">
+            <select v-model="selectedCountry" @change="makePrediction">
+              <option value="">Sélectionner un pays</option>
+              <option v-for="country in supportedCountries" :key="country" :value="country">
+                {{ country }}
+              </option>
+            </select>
+            <div v-if="latestPrediction" class="prediction-result">
+              <span class="prediction-label">Décès prédits:</span>
+              <span class="prediction-value">{{ latestPrediction.new_deaths_rounded }}</span>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Graphiques avec contrôles -->
+      <!-- Graphiques avec données réelles -->
       <section class="charts-section">
         <div class="chart-controls">
-          <h2>Évolution temporelle</h2>
+          <h2>Données COVID-19</h2>
           <div class="control-buttons">
-            <button 
-              v-for="period in timePeriods" 
-              :key="period.value"
-              @click="selectedPeriod = period.value; updateChartData()"
-              :class="{ active: selectedPeriod === period.value }"
-              class="period-btn"
-            >
+            <button v-for="period in timePeriods" :key="period.value"
+              @click="selectedPeriod = period.value; loadRealData()"
+              :class="{ active: selectedPeriod === period.value }" class="period-btn">
               {{ period.label }}
             </button>
           </div>
         </div>
-        
+
         <div class="charts-grid">
           <div class="chart-item">
-            <h3>Nouveaux cas par jour</h3>
+            <h3>Évolution des cas ({{ selectedPeriod }})</h3>
             <canvas ref="casesChart" width="400" height="200"></canvas>
           </div>
           <div class="chart-item">
-            <h3>Taux de mortalité</h3>
-            <canvas ref="mortalityChart" width="400" height="200"></canvas>
+            <h3>Évolution des décès ({{ selectedPeriod }})</h3>
+            <canvas ref="deathsChart" width="400" height="200"></canvas>
           </div>
         </div>
       </section>
 
-      <!-- Insights statistiques -->
-      <section class="insights-section">
-        <div class="insight-card primary">
-          <div class="insight-icon">📊</div>
-          <div class="insight-content">
-            <h3>Région la plus touchée</h3>
-            <p class="insight-value">Île-de-France</p>
-            <p class="insight-detail">58.7% des cas nationaux pour 2025</p>
+      <!-- Collections de données -->
+      <section class="data-section">
+        <h2>Collections de données</h2>
+        <div v-if="collections.length > 0" class="collections-grid">
+          <div v-for="collection in collections" :key="collection.collection" class="collection-item">
+            <h4>{{ collection.collection }}</h4>
+            <p>{{ collection.count.toLocaleString() }} documents</p>
           </div>
         </div>
-
-        <div class="insight-card secondary">
-          <div class="insight-icon">📈</div>
-          <div class="insight-content">
-            <h3>Tendance hebdomadaire</h3>
-            <p class="insight-value">+12.4%</p>
-            <p class="insight-detail">Augmentation par rapport à la semaine dernière</p>
-          </div>
-        </div>
-
-        <div class="insight-card success">
-          <div class="insight-icon">🎯</div>
-          <div class="insight-content">
-            <h3>Efficacité vaccin</h3>
-            <p class="insight-value">94.2%</p>
-            <p class="insight-detail">Réduction des cas sévères</p>
-          </div>
+        <div v-else class="no-data">
+          <p>Aucune collection de données disponible</p>
+          <router-link to="/etl" class="btn btn-primary">Charger des données</router-link>
         </div>
       </section>
     </div>
 
-    <!-- Données tabulaires (accessibilité) -->
+    <!-- Données tabulaires -->
     <details class="chart-data-table">
-      <summary>Afficher les données sous forme de tableau</summary>
-      <table aria-labelledby="chart-section-title">
-        <caption>Données détaillées du dashboard</caption>
+      <summary>Afficher les données détaillées</summary>
+      <table v-if="realData.length > 0" aria-labelledby="chart-section-title">
+        <caption>Données COVID-19 récentes</caption>
         <thead>
           <tr>
             <th scope="col">Date</th>
+            <th scope="col">Pays</th>
             <th scope="col">Nouveaux cas</th>
-            <th scope="col">Décès</th>
-            <th scope="col">Guérisons</th>
+            <th scope="col">Nouveaux décès</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(item, index) in tableData" :key="index">
-            <th scope="row">{{ item.date }}</th>
-            <td>{{ item.cases.toLocaleString() }}</td>
-            <td>{{ item.deaths.toLocaleString() }}</td>
-            <td>{{ item.recoveries.toLocaleString() }}</td>
+          <tr v-for="(item, index) in realData.slice(0, 10)" :key="index">
+            <th scope="row">{{ formatDate(item.date_reported || item.date) }}</th>
+            <td>{{ item.country || item.Country || 'N/A' }}</td>
+            <td>{{ (item.new_cases || item.New_cases || 0).toLocaleString() }}</td>
+            <td>{{ (item.new_deaths || item.New_deaths || 0).toLocaleString() }}</td>
           </tr>
         </tbody>
       </table>
@@ -157,22 +131,48 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { fetchData } from '@/services/dataServices'
+import { getCollections } from '@/services/etlService'
+import MLService from '@/services/mlService'
 import Chart from 'chart.js/auto'
+import DashboardService from '@/services/dashboardService'
 
-// Données KPI
+// État réactif pour les données réelles
+const realData = ref([])
+const collections = ref([])
+const mlHealth = ref(null)
+const modelInfo = ref(null)
+const supportedCountries = ref([])
+const selectedCountry = ref('')
+const latestPrediction = ref(null)
+const loading = ref(true)
+
+// KPI calculés à partir des données réelles
 const kpiData = ref({
-  infectionRate: 2.4,
-  infectionChange: -0.8,
-  infectionTrend: 'positive',
-  mortalityRate: 1.2,
-  mortalityChange: -0.3,
-  mortalityTrend: 'positive',
-  recoveryRate: 96.4,
-  recoveryChange: 1.1,
-  recoveryTrend: 'positive'
+  totalCases: 0,
+  totalDeaths: 0,
+  casesChange: 0,
+  deathsChange: 0
 })
+
+const modelPerformance = computed(() => {
+  if (!modelInfo.value?.performance) return null
+  return {
+    r2Score: (modelInfo.value.performance.test_r2 * 100).toFixed(1) + '%',
+    mae: modelInfo.value.performance.test_mae?.toFixed(1)
+  }
+})
+
+const casesChangeClass = computed(() => ({
+  positive: kpiData.value.casesChange < 0,
+  negative: kpiData.value.casesChange > 0
+}))
+
+const deathsChangeClass = computed(() => ({
+  positive: kpiData.value.deathsChange < 0,
+  negative: kpiData.value.deathsChange > 0
+}))
 
 // Contrôles de période
 const timePeriods = ref([
@@ -186,183 +186,169 @@ const selectedPeriod = ref('30d')
 
 // Références des graphiques
 const casesChart = ref(null)
-const mortalityChart = ref(null)
+const deathsChart = ref(null)
 let casesChartInstance = null
-let mortalityChartInstance = null
+let deathsChartInstance = null
 
-// Données pour les graphiques et tableau
-const chartData = ref({
-  labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun'],
-  cases: [1200, 1500, 1800, 1400, 1100, 900],
-  mortality: [2.1, 1.8, 1.5, 1.2, 1.0, 0.8]
-})
+// Chargement des données ML
+const loadMLData = async () => {
+  try {
+    const [healthData, countriesData, modelData] = await Promise.all([
+      MLService.checkMLHealth().catch(() => ({ ready_for_predictions: false })),
+      MLService.getSupportedCountries().catch(() => ({ countries: [] })),
+      MLService.getModelInfo().catch(() => null)
+    ])
 
-const tableData = ref([
-  { date: '2025-06-20', cases: 1200, deaths: 24, recoveries: 1150 },
-  { date: '2025-06-21', cases: 1100, deaths: 22, recoveries: 1070 },
-  { date: '2025-06-22', cases: 950, deaths: 19, recoveries: 920 },
-  { date: '2025-06-23', cases: 800, deaths: 16, recoveries: 780 },
-  { date: '2025-06-24', cases: 750, deaths: 15, recoveries: 720 },
-  { date: '2025-06-25', cases: 690, deaths: 14, recoveries: 670 }
-])
+    mlHealth.value = healthData
+    supportedCountries.value = countriesData.countries || []
+    modelInfo.value = modelData
 
-const createCasesChart = () => {
-  if (casesChartInstance) {
-    casesChartInstance.destroy()
+    if (supportedCountries.value.length > 0) {
+      selectedCountry.value = supportedCountries.value[0]
+    }
+  } catch (error) {
+    console.error('Erreur chargement données ML:', error)
   }
+}
+
+// Chargement des données réelles
+const loadRealData = async () => {
+  try {
+    loading.value = true
+
+    // Charger les données depuis les collections MongoDB
+    const [dataResult, collectionsResult] = await Promise.all([
+      DashboardService.getCovidDataByPeriod(selectedPeriod.value),
+      getCollections().catch(() => ({ collections: [] }))
+    ])
+    realData.value = dataResult
+    collections.value = collectionsResult.collections || []
+
+    // Calculer les KPI à partir des données réelles
+    calculateKPIs()
+
+    // Mettre à jour les graphiques
+    await nextTick()
+    updateCharts()
+
+  } catch (error) {
+    console.error('Erreur chargement données réelles:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+// Calcul des KPI à partir des données réelles
+const calculateKPIs = () => {
+  kpiData.value = DashboardService.calculateKPIs(realData.value)
+}
+
+// Prédiction rapide
+const makePrediction = async () => {
+  if (!selectedCountry.value || !mlHealth.value?.ready_for_predictions) return
+
+  try {
+    const predictionData = {
+      country: selectedCountry.value,
+      date: new Date().toISOString().split('T')[0],
+      new_cases: 1000,
+      people_vaccinated: 50000000,
+      new_tests: 100000,
+      daily_occupancy_hosp: 2000
+    }
+
+    const result = await MLService.predict(predictionData)
+    latestPrediction.value = result.prediction
+  } catch (error) {
+    console.error('Erreur prédiction:', error)
+  }
+}
+
+// Mise à jour des graphiques avec données réelles
+const updateCharts = () => {
+  if (realData.value.length === 0) return
+
+  const casesChartData = DashboardService.prepareChartData(realData.value, 'new_cases')
+  const deathsChartData = DashboardService.prepareChartData(realData.value, 'new_deaths')
+
+  createCasesChart(casesChartData.labels, casesChartData.data)
+  createDeathsChart(deathsChartData.labels, deathsChartData.data)
+}
+
+const createCasesChart = (labels, data) => {
+  if (casesChartInstance) casesChartInstance.destroy()
 
   casesChartInstance = new Chart(casesChart.value, {
     type: 'line',
     data: {
-      labels: chartData.value.labels,
+      labels,
       datasets: [{
         label: 'Nouveaux cas',
-        data: chartData.value.cases,
+        data,
         borderColor: '#667eea',
         backgroundColor: 'rgba(102, 126, 234, 0.1)',
         borderWidth: 3,
         fill: true,
-        tension: 0.4,
-        pointBackgroundColor: '#667eea',
-        pointBorderColor: '#ffffff',
-        pointBorderWidth: 2,
-        pointRadius: 6
+        tension: 0.4
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
-          titleColor: '#fff',
-          bodyColor: '#fff',
-          cornerRadius: 8,
-          displayColors: false
-        }
-      },
+      plugins: { legend: { display: false } },
       scales: {
-        x: {
-          grid: { display: false },
-          ticks: { color: '#64748b', font: { size: 12 } }
-        },
+        x: { grid: { display: false } },
         y: {
           grid: { color: 'rgba(148, 163, 184, 0.1)' },
-          ticks: { 
-            color: '#64748b',
-            font: { size: 12 },
-            callback: (value) => value.toLocaleString()
-          }
+          ticks: { callback: (value) => value.toLocaleString() }
         }
       }
     }
   })
 }
 
-const createMortalityChart = () => {
-  if (mortalityChartInstance) {
-    mortalityChartInstance.destroy()
-  }
+const createDeathsChart = (labels, data) => {
+  if (deathsChartInstance) deathsChartInstance.destroy()
 
-  mortalityChartInstance = new Chart(mortalityChart.value, {
+  deathsChartInstance = new Chart(deathsChart.value, {
     type: 'bar',
     data: {
-      labels: chartData.value.labels,
+      labels,
       datasets: [{
-        label: 'Taux de mortalité (%)',
-        data: chartData.value.mortality,
+        label: 'Nouveaux décès',
+        data,
         backgroundColor: 'rgba(239, 68, 68, 0.8)',
         borderColor: '#ef4444',
-        borderWidth: 1,
-        borderRadius: 6
+        borderWidth: 1
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
-          titleColor: '#fff',
-          bodyColor: '#fff',
-          cornerRadius: 8,
-          displayColors: false,
-          callbacks: {
-            label: (context) => `${context.raw}%`
-          }
-        }
-      },
+      plugins: { legend: { display: false } },
       scales: {
-        x: {
-          grid: { display: false },
-          ticks: { color: '#64748b', font: { size: 12 } }
-        },
+        x: { grid: { display: false } },
         y: {
           grid: { color: 'rgba(148, 163, 184, 0.1)' },
-          ticks: { 
-            color: '#64748b',
-            font: { size: 12 },
-            callback: (value) => `${value}%`
-          }
+          ticks: { callback: (value) => value.toLocaleString() }
         }
       }
     }
   })
 }
 
-const updateChartData = () => {
-  // Simuler des données différentes selon la période
-  const periods = {
-    '7d': {
-      labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
-      cases: [800, 750, 690, 620, 580, 540, 500],
-      mortality: [1.2, 1.1, 1.0, 0.9, 0.8, 0.8, 0.7]
-    },
-    '30d': {
-      labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4'],
-      cases: [5200, 4800, 4200, 3600],
-      mortality: [1.5, 1.3, 1.1, 0.9]
-    },
-    '3m': {
-      labels: ['Avr', 'Mai', 'Jun'],
-      cases: [15000, 12000, 9000],
-      mortality: [2.1, 1.6, 1.2]
-    },
-    '1y': {
-      labels: ['T1', 'T2', 'T3', 'T4'],
-      cases: [45000, 38000, 28000, 22000],
-      mortality: [3.2, 2.4, 1.8, 1.2]
-    }
-  }
-
-  chartData.value = periods[selectedPeriod.value]
-  
-  nextTick(() => {
-    createCasesChart()
-    createMortalityChart()
-  })
+const formatDate = (dateStr) => {
+  if (!dateStr) return 'N/A'
+  const date = new Date(dateStr)
+  return date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })
 }
 
+// Initialisation
 onMounted(async () => {
-  try {
-    // Charger les données réelles si disponibles
-    const data = await fetchData()
-    if (data && data.length > 0) {
-      chartData.value.labels = data.slice(-6).map(d => {
-        const date = new Date(d.date_reported)
-        return date.toLocaleDateString('fr', { month: 'short' })
-      })
-      chartData.value.cases = data.slice(-6).map(d => d.new_cases)
-    }
-  } catch (error) {
-    console.error('Utilisation des données factices')
-  }
-
-  await nextTick()
-  createCasesChart()
-  createMortalityChart()
+  await Promise.all([
+    loadMLData(),
+    loadRealData()
+  ])
 })
 </script>
 
@@ -452,6 +438,11 @@ onMounted(async () => {
   color: #22c55e;
 }
 
+.kpi-trend.negative {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
 .dashboard-grid {
   display: grid;
   grid-template-columns: 1fr 2fr;
@@ -461,7 +452,7 @@ onMounted(async () => {
   margin: 0 auto;
 }
 
-.map-section {
+.model-section {
   grid-row: 1 / 3;
   background: rgba(255, 255, 255, 0.95);
   border-radius: 20px;
@@ -469,90 +460,72 @@ onMounted(async () => {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
-.map-section h2 {
+.model-section h2 {
   font-size: 1.5rem;
   font-weight: 700;
   color: #1f2937;
   margin-bottom: 1.5rem;
 }
 
-.map-container {
-  position: relative;
-  height: 400px;
-  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-  border-radius: 15px;
-  overflow: hidden;
+.model-status {
+  margin-bottom: 2rem;
 }
 
-.france-map {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 300'%3E%3Cpath d='M50 50 L250 50 L250 200 L150 250 L50 200 Z' fill='%23e5e7eb' stroke='%23d1d5db' stroke-width='2'/%3E%3C/svg%3E") center/contain no-repeat;
-}
-
-.region-indicator {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-}
-
-.region-indicator:hover {
-  transform: scale(1.1);
-}
-
-.indicator-dot {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-  margin-bottom: 0.5rem;
-}
-
-.indicator-dot.pulse {
-  animation: pulse 2s infinite;
-}
-
-.indicator-value {
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 0.3rem 0.6rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
+.status-indicator {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
   font-weight: 600;
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.7; transform: scale(1.1); }
+.status-indicator.ready {
+  background: #eafaf1;
+  color: var(--color-success);
+  border: 2px solid var(--color-success);
 }
 
-.map-legend {
-  position: absolute;
-  bottom: 1rem;
-  left: 1rem;
-  background: rgba(255, 255, 255, 0.9);
-  padding: 1rem;
-  border-radius: 10px;
+.status-indicator.not-ready {
+  background: #fef2f2;
+  color: var(--color-warning);
+  border: 2px solid var(--color-warning);
+}
+
+.model-details p {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.quick-prediction {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 1.5rem;
+}
+
+.prediction-form {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 1rem;
 }
 
-.legend-item {
+.prediction-form select {
+  padding: 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 6px;
+}
+
+.prediction-result {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.8rem;
+  background: #f0f9ff;
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 4px solid var(--color-primary);
 }
 
-.legend-color {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
+.prediction-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--color-error);
 }
 
 .charts-section {
@@ -621,63 +594,42 @@ onMounted(async () => {
   height: 200px !important;
 }
 
-.insights-section {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-}
-
-.insight-card {
+.data-section {
+  grid-column: 1 / -1;
   background: rgba(255, 255, 255, 0.95);
   border-radius: 20px;
   padding: 2rem;
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease;
-  border-left: 5px solid;
 }
 
-.insight-card:hover {
-  transform: translateY(-3px);
-}
-
-.insight-card.primary {
-  border-left-color: #667eea;
-}
-
-.insight-card.secondary {
-  border-left-color: #f59e0b;
-}
-
-.insight-card.success {
-  border-left-color: #10b981;
-}
-
-.insight-icon {
-  font-size: 2.5rem;
-}
-
-.insight-content h3 {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #6b7280;
-  margin: 0 0 0.5rem 0;
-}
-
-.insight-value {
-  font-size: 2rem;
-  font-weight: 800;
+.data-section h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
   color: #1f2937;
-  line-height: 1;
-  margin: 0.5rem 0;
+  margin-bottom: 1.5rem;
 }
 
-.insight-detail {
-  font-size: 0.8rem;
-  color: #6b7280;
-  margin: 0;
+.collections-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.collection-item {
+  background: #f9fafb;
+  padding: 1.5rem;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.collection-item h4 {
+  margin: 0 0 0.5rem 0;
+  color: var(--color-primary);
+}
+
+.no-data {
+  text-align: center;
+  padding: 2rem;
 }
 
 .chart-data-table {
@@ -718,12 +670,8 @@ onMounted(async () => {
     grid-template-rows: auto;
   }
   
-  .map-section {
+  .model-section {
     grid-row: 1;
-  }
-
-  .insights-section {
-    grid-template-columns: 1fr;
   }
 }
 
