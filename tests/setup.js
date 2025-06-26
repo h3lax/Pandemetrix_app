@@ -42,6 +42,12 @@ jest.mock('vue-chartjs', () => ({
   }
 }))
 
+jest.mock('plotly', () => ({
+  newPlot: jest.fn().mockResolvedValue(true),
+  restyle: jest.fn().mockResolvedValue(true),
+  relayout: jest.fn().mockResolvedValue(true)
+}))
+
 // Mock window.fs pour les tests de lecture de fichiers
 Object.defineProperty(window, 'fs', {
   value: {
