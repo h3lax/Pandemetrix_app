@@ -51,6 +51,7 @@
     v-if="showTitlePrompt"
     @title-submitted="onTitleSubmitted"
     @cancel="onTitleCancelled"
+    :csvHeaders="csvHeaders"
   />
 </template>
 
@@ -58,6 +59,7 @@
 import { ref } from 'vue'
 import { uploadCSV } from '@/services/etlService'
 import TitleModal from './TitleModal.vue'
+import Papa from 'papaparse';
 
 const emit = defineEmits(['upload-success', 'upload-error'])
 
@@ -71,6 +73,7 @@ const uploadedFile = ref(null)
 const showTitlePrompt = ref(false)
 const pendingFile = ref(null)
 const fileTitle = ref('')
+const csvHeaders = ref([])
 
 const handleDragOver = (e) => {
   e.preventDefault()
@@ -113,11 +116,10 @@ const handleFile = async (file) => {
     fileName: file.fileNamename,
   })
   */
-
   pendingFile.value = file
   showTitlePrompt.value = true
   uploadedFile.value = file
-  await uploadFile(file, title);
+  
 }
 const uploadFile = async (file, title) => {
   isUploading.value = true
@@ -167,6 +169,17 @@ const onTitleCancelled = () => {
   showTitlePrompt.value = false
   pendingFile.value = null
   showError("L'utilisateur a annulé la saisie du titre.")
+}
+
+const getHeaders= (file) =>{
+  Papa.parse(file, {
+    header: true,
+    skipEmptyLines: true,
+    complete: function (results) {
+      csvHeaders.value = results.meta.fields;
+      console.log(csvHeaders)
+    },
+  });
 }
 </script>
 

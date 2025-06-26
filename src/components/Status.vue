@@ -25,13 +25,13 @@
     <table v-else class="w-full table-auto bg-blue-500 rounded-md mt-8">
       <thead>
         <tr class="border-b-1 border-white">
-          <th class="p-4 uppercase">Nom</th>
+          <th class="p-4 uppercase">Collection</th>
           <th class="p-4 uppercase">Documents</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="item in data" :key="item.name" class="border-b-1 border-white">
-          <td class="p-2">{{ item.collection }}</td>
+          <td class="p-2"><div class="ml-2">{{ item.collection }}</div></td>
           <td class="p-2 text-center">{{ item.count }}</td>
         </tr>
       </tbody>
