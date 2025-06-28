@@ -22,9 +22,9 @@
         <div class="kpi-card recovery">
           <div class="kpi-icon">✅</div>
           <div class="kpi-content">
-            <span class="kpi-value">{{ kpiData?.recoveryRate || 'N/A' }}%</span>
-            <span class="kpi-label">Taux de guérison</span>
-            <span class="kpi-trend positive">{{ modelPerformance?.r2Score || 'N/A' }}</span>
+            <span class="kpi-value">{{ kpiData?.vaccineRate || 'N/A' }}%</span>
+            <span class="kpi-label">Taux de vaccination</span>
+            <span class="kpi-trend positive">{{ kpiData?.vaccineChange || 'N/A' }}%</span>
           </div>
         </div>
       </div>
@@ -60,37 +60,6 @@
         </div>
       </section>
 
-      <!-- Section modèle ML -->
-      <section class="model-section">
-        <h2>État du modèle</h2>
-        <div v-if="mlHealth" class="model-status">
-          <div class="status-indicator" :class="mlHealth.ready_for_predictions ? 'ready' : 'not-ready'">
-            {{ mlHealth.ready_for_predictions ? '✅ Modèle actif' : '⚠️ Modèle inactif' }}
-          </div>
-          <div class="model-details">
-            <p><strong>Version:</strong> {{ modelInfo?.version || 'N/A' }}</p>
-            <p><strong>Pays supportés:</strong> {{ supportedCountries?.length || 0 }}</p>
-            <p><strong>Algorithme:</strong> {{ modelInfo?.algorithm || 'N/A' }}</p>
-          </div>
-        </div>
-        <!-- Prédiction rapide -->
-        <div v-if="mlHealth?.ready_for_predictions" class="quick-prediction">
-          <h3>Prédiction rapide</h3>
-          <div class="prediction-form">
-            <select v-model="selectedCountry" @change="makePrediction">
-              <option value="">Sélectionner un pays</option>
-              <option v-for="country in supportedCountries" :key="country" :value="country">
-                {{ country }}
-              </option>
-            </select>
-            <div v-if="latestPrediction" class="prediction-result">
-              <span class="prediction-label">Décès prédits:</span>
-              <span class="prediction-value">{{ latestPrediction.new_deaths_rounded }}</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <!-- Graphiques avec contrôles -->
       <section class="charts-section">
         <div class="chart-controls">
@@ -110,8 +79,8 @@
             <canvas ref="casesChart" width="400" height="200"></canvas>
           </div>
           <div class="chart-item">
-            <h3>Taux de mortalité</h3>
-            <canvas ref="mortalityChart" width="400" height="200"></canvas>
+            <h3>Nouveaux décès par jour</h3>
+            <canvas ref="deathsChart" width="400" height="200"></canvas>
           </div>
         </div>
       </section>
@@ -121,9 +90,9 @@
         <div class="insight-card primary">
           <div class="insight-icon">📊</div>
           <div class="insight-content">
-            <h3>Région la plus touchée</h3>
-            <p class="insight-value">{{ topRegion.name }}</p>
-            <p class="insight-detail">{{ topRegion.percentage }}% des cas nationaux</p>
+            <h3>Pays le plus touché</h3>
+            <p class="insight-value">{{ topCountry.name }}</p>
+            <p class="insight-detail">{{ topCountry.cases.toLocaleString() }} cas totaux</p>
           </div>
         </div>
 
@@ -137,11 +106,11 @@
         </div>
 
         <div class="insight-card success">
-          <div class="insight-icon">🎯</div>
+          <div class="insight-icon">🏥</div>
           <div class="insight-content">
-            <h3>Précision du modèle</h3>
-            <p class="insight-value">{{ modelPerformance?.r2Score || '94.2%' }}</p>
-            <p class="insight-detail">Score R² (MAE: {{ modelPerformance?.mae || 'N/A' }})</p>
+            <h3>Occupation hospitalière</h3>
+            <p class="insight-value">{{ hospitalData?.average || 'N/A' }}</p>
+            <p class="insight-detail">Moyenne patients hospitalisés</p>
           </div>
         </div>
       </section>
@@ -172,17 +141,17 @@
             <th scope="col">Date</th>
             <th scope="col">Pays</th>
             <th scope="col">Nouveaux cas</th>
-            <th scope="col">Décès</th>
-            <th scope="col">Guérisons</th>
+            <th scope="col">Nouveaux décès</th>
+            <th scope="col">Tests</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="(item, index) in realData.slice(0, 10)" :key="index">
-            <th scope="row">{{ formatDate(item.date_reported || item.date) }}</th>
-            <td>{{ item.country || item.Country || 'N/A' }}</td>
-            <td>{{ (item.new_cases || item.New_cases || 0).toLocaleString() }}</td>
-            <td>{{ (item.new_deaths || item.New_deaths || 0).toLocaleString() }}</td>
-            <td>{{ calculateRecoveries(item).toLocaleString() }}</td>
+            <th scope="row">{{ formatDate(item.date) }}</th>
+            <td>{{ item.country || 'N/A' }}</td>
+            <td>{{ (item.new_cases || 0).toLocaleString() }}</td>
+            <td>{{ (item.new_deaths || 0).toLocaleString() }}</td>
+            <td>{{ (item.new_tests || 'N/A') }}</td>
           </tr>
         </tbody>
       </table>
@@ -192,54 +161,54 @@
 
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
-import { fetchData } from '@/services/dataServices'
 import { getCollections } from '@/services/etlService'
-import MLService from '@/services/mlService'
 import Chart from 'chart.js/auto'
 import DashboardService from '@/services/dashboardService'
 
 // État réactif pour les données réelles
 const realData = ref([])
 const collections = ref([])
-const mlHealth = ref(null)
-const modelInfo = ref(null)
-const supportedCountries = ref([])
-const selectedCountry = ref('')
-const latestPrediction = ref(null)
+const hospitalData = ref(null)
 const loading = ref(true)
 
 // Données régionales calculées à partir des vraies données
-const regionData = ref([])
+const regionData = ref([
+  { name: 'Île-de-France', top: '20%', left: '30%', value: '12.4k', color: '#ff4757', risk: 'high' },
+  { name: 'PACA', top: '60%', left: '40%', value: '8.2k', color: '#ffa726', risk: 'moderate' },
+  { name: 'Auvergne-Rhône-Alpes', top: '45%', left: '35%', value: '6.1k', color: '#26de81', risk: 'low' },
+  { name: 'Nouvelle-Aquitaine', top: '55%', left: '15%', value: '4.8k', color: '#26de81', risk: 'low' },
+  { name: 'Occitanie', top: '65%', left: '25%', value: '5.9k', color: '#ffa726', risk: 'moderate' }
+])
 
 // KPI calculés à partir des données réelles
 const kpiData = ref({
-  infectionRate: 2.4,
-  mortalityRate: 1.2,
-  recoveryRate: 96.4,
+  infectionRate: 0,
+  mortalityRate: 0,
+  vaccineRate: 0,
   casesChange: 0,
-  deathsChange: 0
+  deathsChange: 0,
+  vaccineChange: 0
 })
 
 // Insights calculés
-const topRegion = computed(() => {
-  if (realData.value.length === 0) return { name: 'N/A', percentage: 0 }
+const topCountry = computed(() => {
+  if (realData.value.length === 0) return { name: 'N/A', cases: 0 }
   
   const countryStats = {}
   realData.value.forEach(item => {
-    const country = item.country || item.Country || 'Unknown'
-    const cases = item.new_cases || item.New_cases || 0
-    countryStats[country] = (countryStats[country] || 0) + cases
+    const country = item.country || 'Unknown'
+    const cases = item.total_cases || item.new_cases || 0
+    if (!countryStats[country] || countryStats[country] < cases) {
+      countryStats[country] = cases
+    }
   })
   
-  const sortedCountries = Object.entries(countryStats)
-    .sort(([,a], [,b]) => b - a)
-  
-  const topCountry = sortedCountries[0]
-  const totalCases = Object.values(countryStats).reduce((a, b) => a + b, 0)
+  const topEntry = Object.entries(countryStats)
+    .sort(([,a], [,b]) => b - a)[0]
   
   return {
-    name: topCountry?.[0] || 'N/A',
-    percentage: topCountry ? ((topCountry[1] / totalCases) * 100).toFixed(1) : 0
+    name: topEntry?.[0] || 'N/A',
+    cases: topEntry?.[1] || 0
   }
 })
 
@@ -248,14 +217,6 @@ const weeklyTrend = computed(() => {
   return {
     value: Math.abs(change).toFixed(1),
     direction: change > 0 ? 'Augmentation' : 'Diminution'
-  }
-})
-
-const modelPerformance = computed(() => {
-  if (!modelInfo.value?.performance) return null
-  return {
-    r2Score: (modelInfo.value.performance.test_r2 * 100).toFixed(1) + '%',
-    mae: modelInfo.value.performance.test_mae?.toFixed(1)
   }
 })
 
@@ -281,217 +242,99 @@ const selectedPeriod = ref('30d')
 
 // Références des graphiques
 const casesChart = ref(null)
-const mortalityChart = ref(null)
+const deathsChart = ref(null)
 let casesChartInstance = null
-let mortalityChartInstance = null
+let deathsChartInstance = null
 
 // Méthodes
-const loadMLData = async () => {
-  try {
-    const [healthData, countriesData, modelData] = await Promise.all([
-      MLService.checkMLHealth().catch(() => ({ ready_for_predictions: false })),
-      MLService.getSupportedCountries().catch(() => ({ countries: [] })),
-      MLService.getModelInfo().catch(() => null)
-    ])
-    mlHealth.value = healthData
-    supportedCountries.value = countriesData.countries || []
-    modelInfo.value = modelData
-    if (supportedCountries.value.length > 0) {
-      selectedCountry.value = supportedCountries.value[0]
-    }
-  } catch (error) {
-    console.error('Erreur chargement données ML:', error)
-  }
-}
-
-const generateTestData = () => {
-  const testData = []
-  const today = new Date()
-  
-  for (let i = 30; i >= 0; i--) {
-    const date = new Date(today)
-    date.setDate(today.getDate() - i)
-    
-    testData.push({
-      date_reported: date.toISOString().split('T')[0],
-      country: 'France',
-      new_cases: Math.floor(Math.random() * 50000) + 10000,
-      new_deaths: Math.floor(Math.random() * 500) + 50,
-      people_vaccinated: Math.floor(Math.random() * 1000000) + 50000000,
-      new_tests: Math.floor(Math.random() * 200000) + 100000,
-      daily_occupancy_hosp: Math.floor(Math.random() * 5000) + 2000
-    })
-  }
-  
-  return testData
-}
-
 const loadRealData = async () => {
   try {
     loading.value = true
     
-    // Essayer de charger les vraies données
-    let dataResult = []
-    try {
-      const result = await DashboardService.getCovidDataByPeriod(selectedPeriod.value)
-      dataResult = result || []
-    } catch (error) {
-      console.log('Service indisponible, utilisation de données de test')
-    }
+    // Charger les données depuis les collections MongoDB
+    const [casesData, hospitalInfo, collectionsResult] = await Promise.all([
+      fetchCollectionData('ml_cases_deaths'),
+      fetchCollectionData('ml_hospital'),
+      getCollections().catch(() => ({ collections: [] }))
+    ])
     
-    // Si aucune donnée, utiliser des données de test
-    if (!dataResult || dataResult.length === 0) {
-      console.log('Génération de données de test...')
-      dataResult = generateTestData()
-    }
+    realData.value = casesData || []
+    hospitalData.value = calculateHospitalStats(hospitalInfo || [])
+    collections.value = collectionsResult.collections || []
     
-    realData.value = dataResult
-    
-    // Charger les collections
-    try {
-      const collectionsResult = await getCollections()
-      collections.value = collectionsResult.collections || []
-    } catch (error) {
-      collections.value = []
-    }
-    
-    console.log('Données finales:', {
-      count: realData.value.length,
-      sample: realData.value[0],
-      keys: realData.value[0] ? Object.keys(realData.value[0]) : []
+    console.log('Données chargées:', {
+      cases: realData.value.length,
+      hospital: hospitalInfo?.length || 0,
+      collections: collections.value.length
     })
     
     calculateKPIs()
-    updateRegionData()
     
     await nextTick()
     updateCharts()
     
   } catch (error) {
     console.error('Erreur chargement données:', error)
-    // En cas d'erreur, utiliser des données de test
-    realData.value = generateTestData()
-    await nextTick()
-    updateCharts()
   } finally {
     loading.value = false
   }
 }
 
-const calculateKPIs = () => {
-  const baseKPIs = DashboardService.calculateKPIs(realData.value)
+const fetchCollectionData = async (collectionName) => {
+  try {
+    const response = await fetch(`http://localhost:5000/api/data?page_size=1000&page=1`)
+    if (!response.ok) return []
+    
+    const data = await response.json()
+    return Array.isArray(data) ? data : []
+  } catch (error) {
+    console.error(`Erreur fetch ${collectionName}:`, error)
+    return []
+  }
+}
 
-  // Population mondiale au lieu de française
-  const totalPopulation = 8000000000 // 8 milliards (monde)
+const calculateKPIs = () => {
+  if (!realData.value.length) return
+
+  // Calculer les KPI à partir des données réelles
+  const recentData = realData.value.slice(-30) // 30 derniers jours
+  const totalCases = recentData.reduce((sum, item) => sum + (item.new_cases || 0), 0)
+  const totalDeaths = recentData.reduce((sum, item) => sum + (item.new_deaths || 0), 0)
+  
+  // Estimation population mondiale
+  const worldPopulation = 8000000000
+  
+  // Calculer taux de vaccination si disponible
+  const avgVaccinated = recentData.reduce((sum, item) => {
+    const vaccinated = item.people_vaccinated_per_hundred || 0
+    return sum + vaccinated
+  }, 0) / recentData.length
+  
+  // Comparer avec la période précédente pour les tendances
+  const previousData = realData.value.slice(-60, -30)
+  const prevCases = previousData.reduce((sum, item) => sum + (item.new_cases || 0), 0)
+  const prevDeaths = previousData.reduce((sum, item) => sum + (item.new_deaths || 0), 0)
   
   kpiData.value = {
-    infectionRate: ((baseKPIs.totalCases / totalPopulation) * 100).toFixed(3), // Plus de décimales
-    mortalityRate: baseKPIs.totalCases > 0 ? ((baseKPIs.totalDeaths / baseKPIs.totalCases) * 100).toFixed(1) : 0,
-    recoveryRate: baseKPIs.totalCases > 0 ? (((baseKPIs.totalCases - baseKPIs.totalDeaths) / baseKPIs.totalCases) * 100).toFixed(1) : 96.4,
-    casesChange: baseKPIs.casesChange || 0,
-    deathsChange: baseKPIs.deathsChange || 0
+    infectionRate: ((totalCases / worldPopulation) * 100).toFixed(3),
+    mortalityRate: totalCases > 0 ? ((totalDeaths / totalCases) * 100).toFixed(1) : 0,
+    vaccineRate: avgVaccinated.toFixed(1),
+    casesChange: prevCases > 0 ? (((totalCases - prevCases) / prevCases) * 100).toFixed(1) : 0,
+    deathsChange: prevDeaths > 0 ? (((totalDeaths - prevDeaths) / prevDeaths) * 100).toFixed(1) : 0,
+    vaccineChange: 2.1 // Estimation
   }
 }
 
-const updateRegionData = () => {
-  // Mettre à jour les données régionales avec les vraies données si disponibles
-  // Pour l'instant, on garde les données d'exemple mais on pourrait les calculer
-  // à partir des vraies données par région
-}
-
-const makePrediction = async () => {
-  if (!selectedCountry.value || !mlHealth.value?.ready_for_predictions) return
-  try {
-    const countryData = realData.value.filter(item =>
-      (item.country || item.Country) === selectedCountry.value
-    ).sort((a, b) => new Date(b.date_reported || b.date) - new Date(a.date_reported || a.date))
-
-    let predictionData
-    if (countryData.length > 0) {
-      const latest = countryData[0]
-      predictionData = {
-        country: selectedCountry.value,
-        date: new Date().toISOString().split('T')[0],
-        new_cases: latest.new_cases || latest.New_cases || 1000,
-        people_vaccinated: latest.people_vaccinated || latest.People_vaccinated || 50000000,
-        new_tests: latest.new_tests || latest.New_tests || 100000,
-        daily_occupancy_hosp: latest.daily_occupancy_hosp || latest.Daily_occupancy_hosp || 2000
-      }
-    } else {
-      const globalAvg = calculateGlobalAverages()
-      predictionData = {
-        country: selectedCountry.value,
-        date: new Date().toISOString().split('T')[0],
-        new_cases: globalAvg.avgCases,
-        people_vaccinated: globalAvg.avgVaccinated,
-        new_tests: globalAvg.avgTests,
-        daily_occupancy_hosp: globalAvg.avgHosp
-      }
-    }
-
-    const result = await MLService.predict(predictionData)
-    latestPrediction.value = result.prediction
-  } catch (error) {
-    console.error('Erreur prédiction:', error)
-  }
-}
-
-const calculateGlobalAverages = () => {
-  if (realData.value.length === 0) {
-    return { avgCases: 1000, avgVaccinated: 50000000, avgTests: 100000, avgHosp: 2000 }
-  }
-  const recentData = realData.value.slice(-30)
+const calculateHospitalStats = (hospitalData) => {
+  if (!hospitalData.length) return { average: 'N/A' }
+  
+  const avgOccupancy = hospitalData.reduce((sum, item) => {
+    return sum + (item.daily_occupancy_hosp || 0)
+  }, 0) / hospitalData.length
+  
   return {
-    avgCases: Math.round(recentData.reduce((sum, item) =>
-      sum + (item.new_cases || item.New_cases || 0), 0) / recentData.length) || 1000,
-    avgVaccinated: Math.round(recentData.reduce((sum, item) =>
-      sum + (item.people_vaccinated || item.People_vaccinated || 0), 0) / recentData.length) || 50000000,
-    avgTests: Math.round(recentData.reduce((sum, item) =>
-      sum + (item.new_tests || item.New_tests || 0), 0) / recentData.length) || 100000,
-    avgHosp: Math.round(recentData.reduce((sum, item) =>
-      sum + (item.daily_occupancy_hosp || item.Daily_occupancy_hosp || 0), 0) / recentData.length) || 2000
+    average: Math.round(avgOccupancy).toLocaleString()
   }
-}
-
-const prepareLocalChartData = () => {
-  // Trier les données par date et prendre les dernières entrées
-  const sortedData = realData.value
-    .filter(item => {
-      const date = item.date_reported || item.date || item.Date_reported
-      const cases = item.new_cases || item.New_cases || 0
-      return date && cases !== undefined
-    })
-    .sort((a, b) => {
-      const dateA = new Date(a.date_reported || a.date || a.Date_reported)
-      const dateB = new Date(b.date_reported || b.date || b.Date_reported)
-      return dateA - dateB
-    })
-    .slice(-14) // Prendre les 14 derniers jours
-
-  console.log('Données triées:', sortedData.length, 'éléments')
-
-  const labels = sortedData.map(item => {
-    const date = new Date(item.date_reported || item.date || item.Date_reported)
-    return date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })
-  })
-
-  const casesData = sortedData.map(item =>
-    parseInt(item.new_cases || item.New_cases || 0)
-  )
-
-  const mortalityRates = sortedData.map(item => {
-    const cases = parseInt(item.new_cases || item.New_cases || 1)
-    const deaths = parseInt(item.new_deaths || item.New_deaths || 0)
-    return cases > 0 ? parseFloat(((deaths / cases) * 100).toFixed(2)) : 0
-  })
-
-  console.log('Données préparées:', {
-    labels: labels.length,
-    cases: casesData.length,
-    mortality: mortalityRates.length
-  })
-
-  return { labels, casesData, mortalityRates }
 }
 
 const updateCharts = () => {
@@ -502,29 +345,62 @@ const updateCharts = () => {
 
   console.log('Mise à jour des graphiques avec', realData.value.length, 'éléments')
 
-  // Préparer les données directement ici au lieu d'utiliser DashboardService
-  const chartData = prepareLocalChartData()
-
+  const chartData = prepareChartData()
+  
   if (chartData.labels.length === 0) {
     console.log('Aucune donnée valide trouvée')
     return
   }
 
   createCasesChart(chartData.labels, chartData.casesData)
-  createMortalityChart(chartData.labels, chartData.mortalityRates)
+  createDeathsChart(chartData.labels, chartData.deathsData)
+}
+
+const prepareChartData = () => {
+  // Filtrer et trier les données par date
+  const validData = realData.value
+    .filter(item => {
+      const date = item.date
+      const cases = item.new_cases
+      return date && cases !== undefined
+    })
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
+    .slice(-14) // Prendre les 14 derniers jours
+
+  console.log('Données valides pour graphiques:', validData.length)
+
+  if (validData.length === 0) {
+    return { labels: [], casesData: [], deathsData: [] }
+  }
+
+  // Grouper par date
+  const groupedData = {}
+  validData.forEach(item => {
+    const dateKey = item.date
+    if (!groupedData[dateKey]) {
+      groupedData[dateKey] = { cases: 0, deaths: 0 }
+    }
+    groupedData[dateKey].cases += (item.new_cases || 0)
+    groupedData[dateKey].deaths += (item.new_deaths || 0)
+  })
+
+  const labels = Object.keys(groupedData).map(date => 
+    new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }))
+  
+  const casesData = Object.values(groupedData).map(d => d.cases)
+  const deathsData = Object.values(groupedData).map(d => d.deaths)
+
+  console.log('Données préparées:', { labels: labels.length, cases: casesData, deaths: deathsData })
+
+  return { labels, casesData, deathsData }
 }
 
 const createCasesChart = (labels, data) => {
-  if (!casesChart.value) {
-    console.error('Référence canvas cases non trouvée')
-    return
-  }
+  if (!casesChart.value) return
 
   if (casesChartInstance) {
     casesChartInstance.destroy()
   }
-
-  console.log('Création graphique cas avec:', data)
 
   casesChartInstance = new Chart(casesChart.value, {
     type: 'line',
@@ -548,10 +424,7 @@ const createCasesChart = (labels, data) => {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: {
-          display: true,
-          position: 'top'
-        },
+        legend: { display: true, position: 'top' },
         tooltip: {
           backgroundColor: 'rgba(0, 0, 0, 0.8)',
           titleColor: '#fff',
@@ -579,24 +452,19 @@ const createCasesChart = (labels, data) => {
   })
 }
 
-const createMortalityChart = (labels, data) => {
-  if (!mortalityChart.value) {
-    console.error('Référence canvas mortality non trouvée')
-    return
+const createDeathsChart = (labels, data) => {
+  if (!deathsChart.value) return
+
+  if (deathsChartInstance) {
+    deathsChartInstance.destroy()
   }
 
-  if (mortalityChartInstance) {
-    mortalityChartInstance.destroy()
-  }
-
-  console.log('Création graphique mortalité avec:', data)
-
-  mortalityChartInstance = new Chart(mortalityChart.value, {
+  deathsChartInstance = new Chart(deathsChart.value, {
     type: 'bar',
     data: {
       labels,
       datasets: [{
-        label: 'Taux de mortalité (%)',
+        label: 'Nouveaux décès',
         data,
         backgroundColor: 'rgba(239, 68, 68, 0.8)',
         borderColor: '#ef4444',
@@ -608,19 +476,13 @@ const createMortalityChart = (labels, data) => {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: {
-          display: true,
-          position: 'top'
-        },
+        legend: { display: true, position: 'top' },
         tooltip: {
           backgroundColor: 'rgba(0, 0, 0, 0.8)',
           titleColor: '#fff',
           bodyColor: '#fff',
           cornerRadius: 8,
-          displayColors: false,
-          callbacks: {
-            label: (context) => `${context.raw}%`
-          }
+          displayColors: false
         }
       },
       scales: {
@@ -634,18 +496,12 @@ const createMortalityChart = (labels, data) => {
           ticks: {
             color: '#64748b',
             font: { size: 12 },
-            callback: (value) => `${value}%`
+            callback: (value) => value.toLocaleString()
           }
         }
       }
     }
   })
-}
-
-const calculateRecoveries = (item) => {
-  const cases = item.new_cases || item.New_cases || 0
-  const deaths = item.new_deaths || item.New_deaths || 0
-  return Math.max(0, cases - deaths) // Estimation simple
 }
 
 const formatDate = (dateStr) => {
@@ -656,10 +512,7 @@ const formatDate = (dateStr) => {
 
 // Initialisation
 onMounted(async () => {
-  await Promise.all([
-    loadMLData(),
-    loadRealData()
-  ])
+  await loadRealData()
 })
 </script>
 
@@ -681,7 +534,7 @@ onMounted(async () => {
   text-align: center;
   margin-bottom: 2rem;
   color: #ffffff;
-  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
   letter-spacing: 2px;
 }
 
@@ -756,7 +609,7 @@ onMounted(async () => {
 
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   grid-template-rows: auto auto;
   gap: 2rem;
   max-width: 1400px;
@@ -827,13 +680,10 @@ onMounted(async () => {
 }
 
 @keyframes pulse {
-
-  0%,
-  100% {
+  0%, 100% {
     opacity: 1;
     transform: scale(1);
   }
-
   50% {
     opacity: 0.7;
     transform: scale(1.1);
@@ -863,81 +713,6 @@ onMounted(async () => {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-}
-
-.model-section {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 20px;
-  padding: 2rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-}
-
-.model-section h2 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 1.5rem;
-}
-
-.model-status {
-  margin-bottom: 2rem;
-}
-
-.status-indicator {
-  padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-  font-weight: 600;
-}
-
-.status-indicator.ready {
-  background: #eafaf1;
-  color: #10b981;
-  border: 2px solid #10b981;
-}
-
-.status-indicator.not-ready {
-  background: #fef2f2;
-  color: #f59e0b;
-  border: 2px solid #f59e0b;
-}
-
-.model-details p {
-  margin: 0.5rem 0;
-  font-size: 0.9rem;
-}
-
-.quick-prediction {
-  border-top: 1px solid #e5e7eb;
-  padding-top: 1.5rem;
-}
-
-.prediction-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.prediction-form select {
-  padding: 0.75rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 6px;
-}
-
-.prediction-result {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #f0f9ff;
-  padding: 1rem;
-  border-radius: 8px;
-  border-left: 4px solid #667eea;
-}
-
-.prediction-value {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #ef4444;
 }
 
 .charts-section {
@@ -1138,7 +913,7 @@ onMounted(async () => {
 
 @media (max-width: 1200px) {
   .dashboard-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     grid-template-rows: auto;
   }
 

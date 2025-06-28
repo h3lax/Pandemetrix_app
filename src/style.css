@@ -152,17 +152,6 @@ caption { caption-side: top; padding: 1rem; font-weight: 600; }
 .footer-content nav { margin-top: 1rem; }
 .footer-content nav a { margin: 0 1rem; }
 
-/* Mode sombre - WCAG 1.4.1 */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-text-primary: #ffffff;
-    --color-text-secondary: #b0b0b0;
-    --color-bg-primary: #121212;
-    --color-bg-secondary: #1e1e1e;
-    --color-border: #333333;
-  }
-}
-
 /* Mouvement réduit - WCAG 2.3.3 */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
