@@ -3,7 +3,11 @@ import Header from '../../../src/components/header/Header.vue'
 
 describe('Header.vue', () => {
   test('renders default title and subtitle', () => {
-    const wrapper = mount(Header)
+    const wrapper = mount(Header, {
+      global: {
+        stubs: ['NavItem', 'Navbar']
+      }
+    })
     expect(wrapper.find('h1').text()).toContain('Pandemetrix')
     expect(wrapper.text()).toContain('pandemic predictive model')
   })
@@ -13,6 +17,9 @@ describe('Header.vue', () => {
       props: {
         title: 'Custom Title',
         subtitle: 'Custom Subtitle'
+      },
+      global: {
+        stubs: ['NavItem', 'Navbar']
       }
     })
     expect(wrapper.text()).toContain('Custom Title')

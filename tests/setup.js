@@ -25,7 +25,8 @@ global.IntersectionObserver = jest.fn().mockImplementation(() => ({
 
 // Mock Chart.js
 jest.mock('chart.js/auto', () => ({
-  Chart: jest.fn().mockImplementation(() => ({
+  __esModule: true,
+  default: jest.fn().mockImplementation(() => ({
     destroy: jest.fn(),
     update: jest.fn(),
     render: jest.fn(),
@@ -42,11 +43,15 @@ jest.mock('vue-chartjs', () => ({
   }
 }))
 
-jest.mock('plotly', () => ({
-  newPlot: jest.fn().mockResolvedValue(true),
-  restyle: jest.fn().mockResolvedValue(true),
-  relayout: jest.fn().mockResolvedValue(true)
-}))
+// Mock Plotly via global window object (pas d'import direct)
+Object.defineProperty(window, 'Plotly', {
+  value: {
+    newPlot: jest.fn().mockResolvedValue(true),
+    restyle: jest.fn().mockResolvedValue(true),
+    relayout: jest.fn().mockResolvedValue(true)
+  },
+  writable: true
+})
 
 // Mock window.fs pour les tests de lecture de fichiers
 Object.defineProperty(window, 'fs', {

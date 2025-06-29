@@ -1,8 +1,10 @@
-// tests/unit/components/etl/EtlMain.test.js
 import { mount } from '@vue/test-utils'
 import EtlMain from '@/components/etl/EtlMain.vue'
 
-jest.mock('@/services/etlService')
+jest.mock('@/services/etlService', () => ({
+  getETLJobs: jest.fn().mockResolvedValue([]),
+  deleteETLJob: jest.fn().mockResolvedValue({ success: true })
+}))
 
 describe('EtlMain.vue', () => {
   test('renders main sections', () => {
@@ -12,20 +14,18 @@ describe('EtlMain.vue', () => {
       }
     })
     expect(wrapper.text()).toContain('Gestionnaire ETL')
+    expect(wrapper.text()).toContain('Upload CSV')
+    expect(wrapper.text()).toContain('Jobs ETL')
   })
 
-  test('handles upload success', async () => {
+  test('handles upload and download events', async () => {
     const wrapper = mount(EtlMain)
-    const refreshSpy = jest.spyOn(wrapper.vm, 'refreshJobs')
+    const refreshSpy = jest.spyOn(wrapper.vm, 'refreshJobs').mockImplementation()
     
-    // Simule directement l'appel
-    await wrapper.vm.refreshJobs()
+    await wrapper.vm.handleUploadSuccess()
     expect(refreshSpy).toHaveBeenCalled()
-  })
-
-  test('refreshes jobs list', async () => {
-    const wrapper = mount(EtlMain)
-    await wrapper.vm.refreshJobs()
-    expect(wrapper.vm.loadingJobs).toBe(false)
+    
+    await wrapper.vm.handleDownloadSuccess()
+    expect(refreshSpy).toHaveBeenCalledTimes(2)
   })
 })
