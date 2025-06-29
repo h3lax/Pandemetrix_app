@@ -4,7 +4,6 @@ export class DashboardService {
 
   static async getCovidDataByPeriod(period = '30d', limit = 1000) {
     try {
-      console.log(`Récupération données ${period} depuis MongoDB`)
 
       // Calculer la date de début selon la période
       const endDate = new Date()
@@ -33,25 +32,36 @@ export class DashboardService {
 
       const data = await response.json()
 
-      console.log('Données MongoDB reçues:', {
-        length: data.length,
-        countries: [...new Set(data.map(d => d.country))],
-        dateRange: data.length > 0 ? {
-          first: data[0]?.date,
-          last: data[data.length - 1]?.date
-        } : null
-      })
+
 
       if (!Array.isArray(data) || data.length === 0) {
-        console.log('Aucune donnée MongoDB, fallback vers données de test')
-        return this.generateDiverseTestData()
+
+        // Fallback : récupérer les données les plus récentes disponibles
+        const fallbackResponse = await fetch(`http://localhost:5000/api/data?page_size=${limit}&page=1`)
+        const fallbackData = await fallbackResponse.json()
+
+        if (fallbackData && fallbackData.length > 0) {
+          return fallbackData.slice(0, limit)
+        }
+
+        return []
       }
 
       return data
 
     } catch (error) {
       console.error('Erreur récupération MongoDB:', error)
-      return this.generateDiverseTestData()
+      // Fallback en cas d'erreur aussi
+      try {
+        const fallbackResponse = await fetch(`http://localhost:5000/api/data?page_size=${limit}&page=1`)
+        const fallbackData = await fallbackResponse.json()
+        if (fallbackData && fallbackData.length > 0) {
+          return fallbackData.slice(0, limit)
+        }
+      } catch (fallbackError) {
+        console.error('Erreur fallback:', fallbackError)
+      }
+      return []
     }
   }
 
@@ -87,29 +97,6 @@ export class DashboardService {
       console.error(`Erreur données pour ${country}:`, error)
       return []
     }
-  }
-
-  static generateTestDataFromCollections() {
-    const data = []
-    const startDate = new Date()
-    startDate.setDate(startDate.getDate() - 30)
-
-    for (let i = 0; i < 30; i++) {
-      const date = new Date(startDate)
-      date.setDate(date.getDate() + i)
-
-      data.push({
-        date_reported: date.toISOString().split('T')[0],
-        country: 'France',
-        new_cases: Math.floor(Math.random() * 10000) + 5000,
-        new_deaths: Math.floor(Math.random() * 100) + 50,
-        Date_reported: date.toISOString().split('T')[0],
-        New_cases: Math.floor(Math.random() * 10000) + 5000,
-        New_deaths: Math.floor(Math.random() * 100) + 50
-      })
-    }
-
-    return data
   }
 
   static calculateKPIs(data) {
@@ -261,7 +248,6 @@ export class DashboardService {
       const response = await fetch('http://localhost:5000/api/data/countries')
       const data = await response.json()
 
-      console.log('Pays disponibles:', data.total_countries, 'pays trouvés')
       return data.countries
     } catch (error) {
       console.error('Erreur récupération pays:', error)

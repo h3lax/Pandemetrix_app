@@ -154,22 +154,6 @@
         </div>
       </div>
     </section>
-
-    <!-- Section 3 : Prédictions multiples -->
-    <section class="card" v-if="mlHealth?.ready_for_predictions">
-      <h2>Prédictions sur plusieurs jours</h2>
-      <div class="batch-controls">
-        <button @click="generateWeekPredictions" :disabled="!selectedCountry || loadingBatch">
-          {{ loadingBatch ? 'Génération...' : 'Prédire 7 jours' }}
-        </button>
-        <span v-if="batchResults">{{ batchResults.successful_predictions }} prédictions réussies</span>
-      </div>
-
-      <div v-if="batchChart" class="chart-container">
-        <h4>Prédictions sur 7 jours</h4>
-        <canvas ref="batchChartCanvas" aria-label="Prédictions sur 7 jours"></canvas>
-      </div>
-    </section>
   </div>
 </template>
 

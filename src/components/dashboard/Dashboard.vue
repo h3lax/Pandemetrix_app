@@ -24,54 +24,23 @@
           <div class="kpi-content">
             <span class="kpi-value">{{ kpiData?.recoveryRate || 'N/A' }}%</span>
             <span class="kpi-label">Taux de guérison</span>
-            <span class="kpi-trend positive">{{ modelPerformance?.r2Score || 'N/A' }}</span>
+            <span class="kpi-trend positive">{{ ((kpiData?.totalCases || 0) - (kpiData?.totalCases || 0) *
+              (kpiData?.mortalityRate || 0) / 100).toLocaleString() }} survivants</span>
           </div>
         </div>
       </div>
     </div>
 
     <div class="dashboard-grid">
-      <!-- Ligne 1: Répartition par région + État du modèle -->
-      <div class="top-sections">
-        <section class="map-section">
-          <h2>Répartition par pays</h2>
-          <div class="world-map-container">
-            <div ref="worldMap" class="world-map"></div>
-          </div>
-        </section>
+      <!-- Répartition par région -->
+      <section class="map-section">
+        <h2>Répartition par pays</h2>
+        <div class="world-map-container">
+          <div ref="worldMap" class="world-map"></div>
+        </div>
+      </section>
 
-        <section class="model-section">
-          <h2>État du modèle</h2>
-          <div v-if="mlHealth" class="model-status">
-            <div class="status-indicator" :class="mlHealth.ready_for_predictions ? 'ready' : 'not-ready'">
-              {{ mlHealth.ready_for_predictions ? '✅ Modèle actif' : '⚠️ Modèle inactif' }}
-            </div>
-            <div class="model-details">
-              <p><strong>Version:</strong> {{ modelInfo?.version || 'N/A' }}</p>
-              <p><strong>Pays supportés:</strong> {{ supportedCountries?.length || 0 }}</p>
-              <p><strong>Algorithme:</strong> {{ modelInfo?.algorithm || 'N/A' }}</p>
-            </div>
-          </div>
-          <!-- Prédiction rapide -->
-          <div v-if="mlHealth?.ready_for_predictions" class="quick-prediction">
-            <h3>Prédiction rapide</h3>
-            <div class="prediction-form">
-              <select v-model="selectedCountry" @change="makePrediction">
-                <option value="">Sélectionner un pays</option>
-                <option v-for="country in supportedCountries" :key="country" :value="country">
-                  {{ country }}
-                </option>
-              </select>
-              <div v-if="latestPrediction" class="prediction-result">
-                <span class="prediction-label">Décès prédits:</span>
-                <span class="prediction-value">{{ latestPrediction.new_deaths_rounded }}</span>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
-
-      <!-- Graphiques avec contrôles - Ligne 3 full width -->
+      <!-- Graphiques avec contrôles -->
       <section class="charts-section">
         <div class="chart-controls">
           <h2>Évolution temporelle</h2>
@@ -96,14 +65,14 @@
         </div>
       </section>
 
-      <!-- Insights statistiques - Ligne 4 -->
+      <!-- Insights statistiques -->
       <section class="insights-section">
         <div class="insight-card primary">
           <div class="insight-icon">📊</div>
           <div class="insight-content">
             <h3>Région la plus touchée</h3>
             <p class="insight-value">{{ topRegion.name }}</p>
-            <p class="insight-detail">{{ topRegion.percentage }}% des cas nationaux</p>
+            <p class="insight-detail">{{ topRegion.percentage }}% des cas totaux</p>
           </div>
         </div>
 
@@ -119,14 +88,14 @@
         <div class="insight-card success">
           <div class="insight-icon">🎯</div>
           <div class="insight-content">
-            <h3>Précision du modèle</h3>
-            <p class="insight-value">{{ modelPerformance?.r2Score || '94.2%' }}</p>
-            <p class="insight-detail">Score R² (MAE: {{ modelPerformance?.mae || 'N/A' }})</p>
+            <h3>Total pays suivis</h3>
+            <p class="insight-value">{{ totalCountries }}</p>
+            <p class="insight-detail">Pays avec données disponibles</p>
           </div>
         </div>
       </section>
 
-      <!-- Collections de données - Ligne 5 -->
+      <!-- Collections de données -->
       <section class="data-section">
         <h2>Collections de données</h2>
         <div v-if="collections.length > 0" class="collections-grid">
@@ -141,91 +110,106 @@
         </div>
       </section>
     </div>
-
-    <!-- Données tabulaires (accessibilité) -->
-    <details class="chart-data-table">
-      <summary>Afficher les données sous forme de tableau</summary>
-      <table v-if="realData.length > 0" aria-labelledby="chart-section-title">
-        <caption>Données détaillées du dashboard</caption>
-        <thead>
-          <tr>
-            <th scope="col">Date</th>
-            <th scope="col">Pays</th>
-            <th scope="col">Nouveaux cas</th>
-            <th scope="col">Décès</th>
-            <th scope="col">Guérisons</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(item, index) in realData.slice(0, 10)" :key="index">
-            <th scope="row">{{ formatDate(item.date_reported || item.date) }}</th>
-            <td>{{ item.country || item.Country || 'N/A' }}</td>
-            <td>{{ (item.new_cases || item.New_cases || 0).toLocaleString() }}</td>
-            <td>{{ (item.new_deaths || item.New_deaths || 0).toLocaleString() }}</td>
-            <td>{{ calculateRecoveries(item).toLocaleString() }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </details>
   </main>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
-import { fetchData } from '@/services/dataServices'
 import { getCollections } from '@/services/etlService'
-import MLService from '@/services/mlService'
 import Chart from 'chart.js/auto'
 import DashboardService from '@/services/dashboardService'
 
 // État réactif pour les données réelles
-const realData = ref([])
 const collections = ref([])
-const mlHealth = ref(null)
-const modelInfo = ref(null)
-const supportedCountries = ref([])
-const selectedCountry = ref('')
-const latestPrediction = ref(null)
 const loading = ref(true)
+const totalCountries = ref(0)
+const allData = ref([])
+const realData = ref([])
 
-// Données régionales avec initialisation
-const regionData = ref([
-  { name: 'Île-de-France', top: '25%', left: '48%', color: '#ff4757', risk: 'high', value: '15K' },
-  { name: 'PACA', top: '65%', left: '55%', color: '#ffa726', risk: 'moderate', value: '8K' },
-  { name: 'Rhône-Alpes', top: '45%', left: '58%', color: '#26de81', risk: 'low', value: '5K' },
-  { name: 'Nord', top: '15%', left: '45%', color: '#ffa726', risk: 'moderate', value: '7K' },
-  { name: 'Bretagne', top: '35%', left: '25%', color: '#26de81', risk: 'low', value: '3K' }
-])
-
-// KPI calculés à partir des données réelles
+// Données KPI calculées à partir des données réelles
 const kpiData = ref({
-  infectionRate: 2.4,
-  mortalityRate: 1.2,
-  recoveryRate: 96.4,
+  infectionRate: 0,
+  mortalityRate: 0,
+  recoveryRate: 0,
   casesChange: 0,
-  deathsChange: 0
+  deathsChange: 0,
+  totalCases: 0
 })
 
 // Insights calculés
 const topRegion = computed(() => {
   if (realData.value.length === 0) return { name: 'N/A', percentage: 0 }
-  
+
+  // **LISTE COMPLÈTE D'EXCLUSION** - Continents, groupes et catégories statistiques
+  const exclusions = new Set([
+    // Continents
+    'Africa', 'Asia', 'Europe', 'North America', 'South America', 
+    'Oceania', 'Antarctica', 'Americas',
+    
+    // Régions WHO/OMS
+    'European Region', 'Africa Region', 'South-East Asia', 
+    'Western Pacific', 'Eastern Mediterranean',
+    
+    // Groupes économiques
+    'European Union', 'European Union (27)',
+    'High-income countries', 'Low-income countries',
+    'Lower-middle-income countries', 'Upper-middle-income countries',
+    
+    // Catégories statistiques "World excl."
+    'World', 'World excl. China', 'World excl. China and South Korea',
+    'World excl. China, South Korea, Japan and Singapore',
+    
+    // Catégories régionales "excl."
+    'Asia excl. China',
+    
+    // Autres
+    'International', 'Unknown', 'Other'
+  ])
+
   const countryStats = {}
+  let totalCases = 0
+
   realData.value.forEach(item => {
-    const country = item.country || item.Country || 'Unknown'
-    const cases = item.new_cases || item.New_cases || 0
-    countryStats[country] = (countryStats[country] || 0) + cases
+    let country = item.country || 'Unknown'
+    const cases = parseInt(item.new_cases || 0)
+
+    // Nettoyer le nom du pays
+    country = country.trim()
+
+    // **EXCLURE les catégories non-pays**
+    if (!exclusions.has(country) && country !== '' && cases >= 0) {
+      countryStats[country] = (countryStats[country] || 0) + cases
+      totalCases += cases
+    }
   })
-  
+
+  // Debug
+  console.log('Nombre de vrais pays:', Object.keys(countryStats).length)
+
+  // Trier par nombre de cas décroissant
   const sortedCountries = Object.entries(countryStats)
-    .sort(([,a], [,b]) => b - a)
-  
-  const topCountry = sortedCountries[0]
-  const totalCases = Object.values(countryStats).reduce((a, b) => a + b, 0)
-  
+    .filter(([country, cases]) => cases > 0) // Exclure les pays à 0 cas
+    .sort(([, a], [, b]) => b - a)
+
+  console.log('Top 5 VRAIS pays:', sortedCountries.slice(0, 5).map(([name, cases]) => ({ name, cases })))
+
+  // **PRENDRE LE PREMIER VRAI PAYS**
+  if (sortedCountries.length === 0) {
+    return { name: 'Aucun pays détecté', percentage: 0 }
+  }
+
+  const [topCountryName, topCountryCases] = sortedCountries[0]
+  const percentage = totalCases > 0 ? ((topCountryCases / totalCases) * 100).toFixed(1) : 0
+
+  console.log('VRAI pays le plus touché:', {
+    name: topCountryName,
+    cases: topCountryCases,
+    percentage: percentage
+  })
+
   return {
-    name: topCountry?.[0] || 'N/A',
-    percentage: topCountry ? ((topCountry[1] / totalCases) * 100).toFixed(1) : 0
+    name: String(topCountryName),
+    percentage: percentage
   }
 })
 
@@ -234,14 +218,6 @@ const weeklyTrend = computed(() => {
   return {
     value: Math.abs(change).toFixed(1),
     direction: change > 0 ? 'Augmentation' : 'Diminution'
-  }
-})
-
-const modelPerformance = computed(() => {
-  if (!modelInfo.value?.performance) return null
-  return {
-    r2Score: (modelInfo.value.performance.test_r2 * 100).toFixed(1) + '%',
-    mae: modelInfo.value.performance.test_mae?.toFixed(1)
   }
 })
 
@@ -272,70 +248,128 @@ const worldMap = ref(null)
 let casesChartInstance = null
 let mortalityChartInstance = null
 
+// Fonction utilitaire pour obtenir le numéro de semaine
+const getWeekNumber = (date) => {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
+  const dayNum = d.getUTCDay() || 7
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum)
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1))
+  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7)
+}
+
+// Nouvelle fonction pour grouper les données par période
+const groupByPeriod = (data, period) => {
+  const grouped = {}
+
+  data.forEach(item => {
+    let key
+    const date = new Date(item.date)
+
+    if (period === 'week') {
+      // Grouper par semaine
+      const startOfWeek = new Date(date)
+      startOfWeek.setDate(date.getDate() - date.getDay())
+      key = startOfWeek.toISOString().split('T')[0]
+    } else if (period === 'month') {
+      // Grouper par mois
+      key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-01`
+    }
+
+    if (!grouped[key]) {
+      grouped[key] = { date: key, cases: 0, deaths: 0 }
+    }
+
+    grouped[key].cases += item.cases
+    grouped[key].deaths += item.deaths
+  })
+
+  return Object.values(grouped).sort((a, b) => new Date(a.date) - new Date(b.date))
+}
+
 // Méthodes
 const prepareCountryData = () => {
   const countryStats = {}
-  
+  const zeroCountries = new Set()
+
   console.log('Préparation données pays pour', realData.value.length, 'éléments')
-  console.log('Échantillon de données:', realData.value.slice(0, 2))
-  
+  console.log('Échantillon des 5 premiers éléments:', realData.value.slice(0, 5))
+
   realData.value.forEach(item => {
-    const country = item.country || item.Country || 'Unknown'
-    const cases = item.new_cases || item.New_cases || 0
-    const deaths = item.new_deaths || item.New_deaths || 0
-    
+    const country = item.country || 'Unknown'
+    const cases = parseInt(item.new_cases || 0)
+    const deaths = parseInt(item.new_deaths || 0)
+
     if (!countryStats[country]) {
       countryStats[country] = { cases: 0, deaths: 0 }
     }
-    
+
     countryStats[country].cases += cases
     countryStats[country].deaths += deaths
+
+    // Traquer les pays à zéro
+    if (cases === 0 && deaths === 0) {
+      zeroCountries.add(country)
+    }
   })
-  
-  console.log('Pays détectés:', Object.keys(countryStats))
-  console.log('Statistiques par pays:', countryStats)
-  
+
+  console.log('Pays avec zéro cas/décès:', Array.from(zeroCountries).slice(0, 10))
+  console.log('Pays avec données > 0:', Object.entries(countryStats)
+    .filter(([country, data]) => data.cases > 0 || data.deaths > 0)
+    .slice(0, 5))
+
   return countryStats
 }
 
 const createWorldMap = async () => {
   if (!worldMap.value || realData.value.length === 0) return
-  
+
   // Vérifier si Plotly est disponible
   if (typeof window.Plotly === 'undefined') {
     console.warn('Plotly non disponible - ajoutez le script CDN dans index.html')
     return
   }
-  
+
   try {
     const countryData = prepareCountryData()
-    
+
     const countries = Object.keys(countryData)
     const cases = countries.map(country => countryData[country].cases)
-    const deaths = countries.map(country => countryData[country].deaths)
-    
+
+    // Calculer les percentiles pour une meilleure distribution des couleurs
+    const sortedCases = [...cases].sort((a, b) => a - b)
+    const p25 = sortedCases[Math.floor(sortedCases.length * 0.25)]
+    const p50 = sortedCases[Math.floor(sortedCases.length * 0.5)]
+    const p75 = sortedCases[Math.floor(sortedCases.length * 0.75)]
+    const p90 = sortedCases[Math.floor(sortedCases.length * 0.9)]
+
+    console.log('Distribution des cas:', { p25, p50, p75, p90, max: Math.max(...cases) })
+
     const data = [{
       type: 'choropleth',
       locationmode: 'country names',
       locations: countries,
       z: cases,
-      text: countries.map(country => 
+      text: countries.map(country =>
         `${country}<br>Cas: ${countryData[country].cases.toLocaleString()}<br>Décès: ${countryData[country].deaths.toLocaleString()}`
       ),
       hovertemplate: '%{text}<extra></extra>',
       colorscale: [
-        [0, '#26de81'],
-        [0.3, '#ffa726'], 
-        [0.7, '#ff6b6b'],
-        [1, '#ff4757']
+        [0, '#e8f5e8'],
+        [0.25, '#a5d6a7'],
+        [0.5, '#66bb6a'],
+        [0.75, '#ff9800'],
+        [0.9, '#f44336'],
+        [1, '#b71c1c']
       ],
+      zmin: 0,
+      zmax: p90, // Limiter à 90e percentile pour éviter les valeurs extrêmes
       colorbar: {
         title: 'Nouveaux cas',
         titlefont: { size: 14 },
         thickness: 15
       }
     }]
-    
+
     const layout = {
       title: {
         text: 'Distribution mondiale des cas COVID-19',
@@ -352,198 +386,376 @@ const createWorldMap = async () => {
       font: { color: '#1f2937' },
       margin: { t: 50, b: 0, l: 0, r: 0 }
     }
-    
+
     const config = {
       responsive: true,
       displayModeBar: false
     }
-    
+
     await window.Plotly.newPlot(worldMap.value, data, layout, config)
   } catch (error) {
     console.error('Erreur création carte monde:', error)
   }
 }
 
-const loadMLData = async () => {
-  try {
-    const [healthData, countriesData, modelData] = await Promise.all([
-      MLService.checkMLHealth().catch(() => ({ ready_for_predictions: false })),
-      MLService.getSupportedCountries().catch(() => ({ countries: [] })),
-      MLService.getModelInfo().catch(() => null)
-    ])
-    mlHealth.value = healthData
-    supportedCountries.value = countriesData.countries || []
-    modelInfo.value = modelData
-    if (supportedCountries.value.length > 0) {
-      selectedCountry.value = supportedCountries.value[0]
-    }
-  } catch (error) {
-    console.error('Erreur chargement données ML:', error)
-  }
-}
-
-const generateTestData = () => {
-  const testData = []
-  const today = new Date()
-  const countries = ['France', 'Germany', 'Italy', 'Spain', 'United Kingdom', 'United States', 'Canada', 'Japan', 'Australia', 'Brazil']
-  
-  for (let i = 30; i >= 0; i--) {
-    const date = new Date(today)
-    date.setDate(today.getDate() - i)
-    
-    countries.forEach(country => {
-      testData.push({
-        date_reported: date.toISOString().split('T')[0],
-        country: country,
-        new_cases: Math.floor(Math.random() * 50000) + 1000,
-        new_deaths: Math.floor(Math.random() * 500) + 10,
-        people_vaccinated: Math.floor(Math.random() * 1000000) + 10000000,
-        new_tests: Math.floor(Math.random() * 200000) + 50000,
-        daily_occupancy_hosp: Math.floor(Math.random() * 5000) + 500
-      })
-    })
-  }
-  
-  return testData
-}
-
 const loadRealData = async () => {
   try {
     loading.value = true
-    
-    let dataResult = []
-    try {
-      const result = await DashboardService.getCovidDataByPeriod(selectedPeriod.value)
-      dataResult = result || []
-      console.log('Données récupérées:', dataResult.length, 'éléments')
-      console.log('Échantillon:', dataResult.slice(0, 3))
-    } catch (error) {
-      console.log('Service indisponible:', error)
+
+    console.log('Chargement des données réelles pour période:', selectedPeriod.value)
+
+    // Ajuster la limite selon la période pour optimiser les performances
+    let limitData
+    switch (selectedPeriod.value) {
+      case '7d': limitData = 1000; break
+      case '30d': limitData = 3000; break
+      case '3m': limitData = 8000; break
+      case '1y': limitData = 15000; break
+      default: limitData = 5000
     }
-    
-    // N'utiliser les données de test que si vraiment aucune donnée
+
+    // Utiliser le service pour récupérer les données réelles (FILTRÉES)
+    let dataResult = await DashboardService.getCovidDataByPeriod(selectedPeriod.value, limitData)
+
     if (!dataResult || dataResult.length === 0) {
-      console.warn('Aucune vraie donnée - utilisation de données de test')
-      dataResult = generateTestData()
+      console.error('Aucune donnée reçue du service')
+      dataResult = []
     }
-    
+
+    // **NOUVEAU : Si c'est la première fois ou 1y, récupérer TOUTES les données**
+    if (allData.value.length === 0 || selectedPeriod.value === '1y') {
+      try {
+        console.log('Chargement de toutes les données pour le taux d\'infection fixe...')
+        const allDataResult = await DashboardService.getCovidDataByPeriod('1y', 20000)
+        allData.value = allDataResult || []
+        console.log('Données complètes chargées:', allData.value.length, 'éléments')
+
+        // Log pour vérifier la couverture temporelle
+        if (allData.value.length > 0) {
+          const dates = allData.value
+            .map(item => item.date || item.date_reported)
+            .filter(Boolean)
+            .sort()
+          console.log('Période couverte:', dates[0], 'à', dates[dates.length - 1])
+        }
+      } catch (error) {
+        console.warn('Erreur chargement données complètes:', error)
+        // Fallback : utiliser les données actuelles comme toutes les données
+        allData.value = dataResult
+      }
+    }
+
+    console.log('Données récupérées pour la période:', dataResult.length, 'éléments')
+    if (dataResult.length > 0) {
+      console.log('Échantillon données période:', dataResult[0])
+    }
+
+    // Assigner les données filtrées pour les graphiques
     realData.value = dataResult
-    
+
+    // Récupérer les collections
     try {
       const collectionsResult = await getCollections()
       collections.value = collectionsResult.collections || []
     } catch (error) {
+      console.warn('Erreur récupération collections:', error)
       collections.value = []
     }
-    
+
+    // Calculer les KPI avec la séparation allData/realData
     calculateKPIs()
-    
+    updateCountryCount()
+
+    // Attendre le rendu puis mettre à jour les graphiques
     await nextTick()
     updateCharts()
     createWorldMap()
-    
+
   } catch (error) {
     console.error('Erreur chargement données:', error)
+    realData.value = []
+    // En cas d'erreur, s'assurer qu'on a au moins quelque chose dans allData
+    if (allData.value.length === 0) {
+      allData.value = []
+    }
   } finally {
     loading.value = false
   }
 }
 
 const calculateKPIs = () => {
-  const baseKPIs = DashboardService.calculateKPIs(realData.value)
-
-  const totalPopulation = 8000000000
-  
-  kpiData.value = {
-    infectionRate: ((baseKPIs.totalCases / totalPopulation) * 100).toFixed(3),
-    mortalityRate: baseKPIs.totalCases > 0 ? ((baseKPIs.totalDeaths / baseKPIs.totalCases) * 100).toFixed(1) : 0,
-    recoveryRate: baseKPIs.totalCases > 0 ? (((baseKPIs.totalCases - baseKPIs.totalDeaths) / baseKPIs.totalCases) * 100).toFixed(1) : 96.4,
-    casesChange: baseKPIs.casesChange || 0,
-    deathsChange: baseKPIs.deathsChange || 0
+  if (!realData.value || realData.value.length === 0) {
+    kpiData.value = {
+      infectionRate: 0,
+      mortalityRate: 0,
+      recoveryRate: 0,
+      casesChange: 0,
+      deathsChange: 0,
+      totalCases: 0
+    }
+    return
   }
-}
 
-const makePrediction = async () => {
-  if (!selectedCountry.value || !mlHealth.value?.ready_for_predictions) return
-  try {
-    const countryData = realData.value.filter(item =>
-      (item.country || item.Country) === selectedCountry.value
-    ).sort((a, b) => new Date(b.date_reported || b.date) - new Date(a.date_reported || a.date))
+  // **UTILISER TOUTES LES DONNÉES pour les taux FIXES (infection, mortalité, guérison)**
+  const dataForFixedRates = allData.value.length > 0 ? allData.value : realData.value
 
-    let predictionData
-    if (countryData.length > 0) {
-      const latest = countryData[0]
-      predictionData = {
-        country: selectedCountry.value,
-        date: new Date().toISOString().split('T')[0],
-        new_cases: latest.new_cases || latest.New_cases || 1000,
-        people_vaccinated: latest.people_vaccinated || latest.People_vaccinated || 50000000,
-        new_tests: latest.new_tests || latest.New_tests || 100000,
-        daily_occupancy_hosp: latest.daily_occupancy_hosp || latest.Daily_occupancy_hosp || 2000
-      }
-    } else {
-      const globalAvg = calculateGlobalAverages()
-      predictionData = {
-        country: selectedCountry.value,
-        date: new Date().toISOString().split('T')[0],
-        new_cases: globalAvg.avgCases,
-        people_vaccinated: globalAvg.avgVaccinated,
-        new_tests: globalAvg.avgTests,
-        daily_occupancy_hosp: globalAvg.avgHosp
+  const latestDataByCountry = {}
+
+  dataForFixedRates.forEach(item => {
+    const country = item.country || 'Unknown'
+    const dateStr = item.date || item.date_reported || item.Date_reported
+    const date = new Date(dateStr)
+
+    if (!latestDataByCountry[country] ||
+      date > new Date(latestDataByCountry[country].date || latestDataByCountry[country].date_reported)) {
+      latestDataByCountry[country] = item
+    }
+  })
+
+  // Calculer les totaux cumulés réels (FIXES pour tous les taux)
+  let totalCasesCumulative = 0
+  let totalDeathsCumulative = 0
+  let totalRecovered = 0
+
+  Object.values(latestDataByCountry).forEach(item => {
+    const cases = item.total_cases || item.cumulative_cases || 0
+    const deaths = item.total_deaths || item.cumulative_deaths || 0
+    const recovered = item.total_recovered || item.recovered || 0
+
+    totalCasesCumulative += parseInt(cases)
+    totalDeathsCumulative += parseInt(deaths)
+    totalRecovered += parseInt(recovered)
+  })
+
+  // **UTILISER LES DONNÉES FILTRÉES pour les changements (cases et deaths)**
+  let casesChange = 0
+  let deathsChange = 0
+
+  const sortedData = [...realData.value]
+    .filter(item => {
+      const dateStr = item.date || item.date_reported || item.Date_reported
+      return dateStr && !isNaN(new Date(dateStr).getTime())
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.date || a.date_reported || a.Date_reported)
+      const dateB = new Date(b.date || b.date_reported || b.Date_reported)
+      return dateA - dateB
+    })
+
+  // Grouper par date (pour cases ET deaths)
+  const dailyTotals = {}
+  sortedData.forEach(item => {
+    const date = item.date || item.date_reported || item.Date_reported
+    const cases = parseInt(item.new_cases || 0)
+    const deaths = parseInt(item.new_deaths || 0)
+
+    if (!dailyTotals[date]) {
+      dailyTotals[date] = { cases: 0, deaths: 0 }
+    }
+    dailyTotals[date].cases += cases
+    dailyTotals[date].deaths += deaths
+  })
+
+  const dailyArray = Object.entries(dailyTotals)
+    .map(([date, data]) => ({ date, ...data }))
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
+
+  // **CALCUL ADAPTATIF pour casesChange ET deathsChange**
+  console.log(`Période ${selectedPeriod.value}, données disponibles:`, dailyArray.length)
+
+  const calculateChange = (dataArray, field) => {
+    switch (selectedPeriod.value) {
+      case '7d':
+        if (dataArray.length >= 4) {
+          const recent = dataArray.slice(-2).reduce((sum, day) => sum + day[field], 0)
+          const previous = dataArray.slice(-4, -2).reduce((sum, day) => sum + day[field], 0)
+          if (previous > 0) return ((recent - previous) / previous * 100)
+          else if (recent > 0) return 100
+        } else if (dataArray.length >= 2) {
+          const recent = dataArray[dataArray.length - 1][field]
+          const previous = dataArray[dataArray.length - 2][field]
+          if (previous > 0) return ((recent - previous) / previous * 100)
+        }
+        break
+
+      case '30d':
+        if (dataArray.length >= 10) {
+          const recent = dataArray.slice(-5).reduce((sum, day) => sum + day[field], 0)
+          const previous = dataArray.slice(-10, -5).reduce((sum, day) => sum + day[field], 0)
+          if (previous > 0) return ((recent - previous) / previous * 100)
+          else if (recent > 0) return 100
+        } else if (dataArray.length >= 6) {
+          const recent = dataArray.slice(-3).reduce((sum, day) => sum + day[field], 0)
+          const previous = dataArray.slice(-6, -3).reduce((sum, day) => sum + day[field], 0)
+          if (previous > 0) return ((recent - previous) / previous * 100)
+        } else if (dataArray.length >= 4) {
+          const recent = dataArray.slice(-2).reduce((sum, day) => sum + day[field], 0)
+          const previous = dataArray.slice(-4, -2).reduce((sum, day) => sum + day[field], 0)
+          if (previous > 0) return ((recent - previous) / previous * 100)
+        }
+        break
+
+      case '3m':
+      case '1y':
+        if (dataArray.length >= 28) {
+          const recent = dataArray.slice(-14).reduce((sum, day) => sum + day[field], 0)
+          const previous = dataArray.slice(-28, -14).reduce((sum, day) => sum + day[field], 0)
+          if (previous > 0) return ((recent - previous) / previous * 100)
+        } else if (dataArray.length >= 14) {
+          const recent = dataArray.slice(-7).reduce((sum, day) => sum + day[field], 0)
+          const previous = dataArray.slice(-14, -7).reduce((sum, day) => sum + day[field], 0)
+          if (previous > 0) return ((recent - previous) / previous * 100)
+        }
+        break
+    }
+
+    // Fallback : tendance globale
+    if (dataArray.length > 0) {
+      const firstHalf = dataArray.slice(0, Math.floor(dataArray.length / 2))
+      const secondHalf = dataArray.slice(Math.floor(dataArray.length / 2))
+
+      const firstHalfTotal = firstHalf.reduce((sum, day) => sum + day[field], 0)
+      const secondHalfTotal = secondHalf.reduce((sum, day) => sum + day[field], 0)
+
+      if (firstHalfTotal > 0) {
+        return ((secondHalfTotal - firstHalfTotal) / firstHalfTotal * 100)
       }
     }
 
-    const result = await MLService.predict(predictionData)
-    latestPrediction.value = result.prediction
-  } catch (error) {
-    console.error('Erreur prédiction:', error)
+    return 0
   }
+
+  casesChange = calculateChange(dailyArray, 'cases')
+  deathsChange = calculateChange(dailyArray, 'deaths')
+
+  console.log('Changements calculés:', { casesChange, deathsChange })
+
+  const totalPopulation = 8000000000
+
+  kpiData.value = {
+    // **TAUX D'INFECTION FIXE** - % population mondiale infectée depuis le début
+    infectionRate: totalCasesCumulative > 0 ?
+      ((totalCasesCumulative / totalPopulation) * 100).toFixed(3) : 0,
+
+    // **TAUX DE MORTALITÉ FIXE** - Case Fatality Rate (décès/cas × 100)
+    mortalityRate: totalCasesCumulative > 0 ?
+      ((totalDeathsCumulative / totalCasesCumulative) * 100).toFixed(2) : 0,
+
+    // **TAUX DE GUÉRISON FIXE** - % de cas non-mortels
+    recoveryRate: totalCasesCumulative > 0 ?
+      totalRecovered > 0
+        ? ((totalRecovered / totalCasesCumulative) * 100).toFixed(1)
+        : (((totalCasesCumulative - totalDeathsCumulative) / totalCasesCumulative) * 100).toFixed(1)
+      : 0,
+
+    // **CHANGEMENTS ADAPTATIFS** selon période sélectionnée
+    casesChange: isNaN(casesChange) ? 0 : parseFloat(casesChange.toFixed(1)),
+    deathsChange: isNaN(deathsChange) ? 0 : parseFloat(deathsChange.toFixed(1)),
+
+    // Total pour info
+    totalCases: totalCasesCumulative
+  }
+
+  console.log(`KPI pour ${selectedPeriod.value}:`, {
+    infectionRate: kpiData.value.infectionRate,
+    mortalityRate: kpiData.value.mortalityRate,
+    recoveryRate: kpiData.value.recoveryRate,
+    casesChange: kpiData.value.casesChange,
+    deathsChange: kpiData.value.deathsChange,
+    dataPoints: dailyArray.length,
+    usingAllData: dataForFixedRates === allData.value
+  })
 }
 
-const calculateGlobalAverages = () => {
-  if (realData.value.length === 0) {
-    return { avgCases: 1000, avgVaccinated: 50000000, avgTests: 100000, avgHosp: 2000 }
-  }
-  const recentData = realData.value.slice(-30)
-  return {
-    avgCases: Math.round(recentData.reduce((sum, item) =>
-      sum + (item.new_cases || item.New_cases || 0), 0) / recentData.length) || 1000,
-    avgVaccinated: Math.round(recentData.reduce((sum, item) =>
-      sum + (item.people_vaccinated || item.People_vaccinated || 0), 0) / recentData.length) || 50000000,
-    avgTests: Math.round(recentData.reduce((sum, item) =>
-      sum + (item.new_tests || item.New_tests || 0), 0) / recentData.length) || 100000,
-    avgHosp: Math.round(recentData.reduce((sum, item) =>
-      sum + (item.daily_occupancy_hosp || item.Daily_occupancy_hosp || 0), 0) / recentData.length) || 2000
-  }
+const updateCountryCount = () => {
+  const uniqueCountries = new Set(realData.value.map(item => item.country).filter(Boolean))
+  totalCountries.value = uniqueCountries.size
 }
 
 const prepareLocalChartData = () => {
-  const sortedData = realData.value
-    .filter(item => {
-      const date = item.date_reported || item.date || item.Date_reported
-      const cases = item.new_cases || item.New_cases || 0
-      return date && cases !== undefined
-    })
-    .sort((a, b) => {
-      const dateA = new Date(a.date_reported || a.date || a.Date_reported)
-      const dateB = new Date(b.date_reported || b.date || b.Date_reported)
-      return dateA - dateB
-    })
-    .slice(-14)
+  console.log('Préparation données graphiques, total items:', realData.value.length)
 
-  const labels = sortedData.map(item => {
-    const date = new Date(item.date_reported || item.date || item.Date_reported)
-    return date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })
+  if (realData.value.length === 0) {
+    return { labels: [], casesData: [], mortalityRates: [] }
+  }
+
+  // Grouper par date pour éviter les doublons
+  const groupedByDate = {}
+
+  realData.value.forEach(item => {
+    const date = item.date
+    const cases = parseInt(item.new_cases || 0)
+    const deaths = parseInt(item.new_deaths || 0)
+
+    if (date) {
+      if (!groupedByDate[date]) {
+        groupedByDate[date] = { cases: 0, deaths: 0 }
+      }
+      groupedByDate[date].cases += cases
+      groupedByDate[date].deaths += deaths
+    }
   })
 
-  const casesData = sortedData.map(item =>
-    parseInt(item.new_cases || item.New_cases || 0)
-  )
+  // Convertir en array et trier par date
+  let sortedData = Object.entries(groupedByDate)
+    .map(([date, data]) => ({ date, ...data }))
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
 
-  const mortalityRates = sortedData.map(item => {
-    const cases = parseInt(item.new_cases || item.New_cases || 1)
-    const deaths = parseInt(item.new_deaths || item.New_deaths || 0)
-    return cases > 0 ? parseFloat(((deaths / cases) * 100).toFixed(2)) : 0
+  // Adapter le nombre de points selon la période sélectionnée
+  let maxPoints
+  switch (selectedPeriod.value) {
+    case '7d':
+      maxPoints = 7  // 1 point par jour
+      break
+    case '30d':
+      maxPoints = 30 // 1 point par jour
+      break
+    case '3m':
+      maxPoints = 12 // 1 point par semaine (12 semaines)
+      // Grouper par semaine pour 3 mois
+      sortedData = groupByPeriod(sortedData, 'week')
+      break
+    case '1y':
+      maxPoints = 12 // 1 point par mois
+      // Grouper par mois pour 1 an
+      sortedData = groupByPeriod(sortedData, 'month')
+      break
+    default:
+      maxPoints = 30
+  }
+
+  // Prendre les derniers points selon la période
+  const finalData = sortedData.slice(-maxPoints)
+
+  console.log('Données après groupement et tri:', finalData.length)
+  console.log('Échantillon:', finalData.slice(0, 3))
+
+  const labels = finalData.map(item => {
+    const date = new Date(item.date)
+    // Format des labels selon la période
+    switch (selectedPeriod.value) {
+      case '7d':
+      case '30d':
+        return date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })
+      case '3m':
+        return `S${getWeekNumber(date)}`
+      case '1y':
+        return date.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' })
+      default:
+        return date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })
+    }
+  })
+
+  const casesData = finalData.map(item => item.cases)
+
+  const mortalityRates = finalData.map(item => {
+    return item.cases > 0 ? parseFloat(((item.deaths / item.cases) * 100).toFixed(2)) : 0
+  })
+
+  console.log('Données finales:', {
+    labels: labels.length,
+    cases: casesData.length,
+    rates: mortalityRates.length
   })
 
   return { labels, casesData, mortalityRates }
@@ -677,12 +889,6 @@ const createMortalityChart = (labels, data) => {
   })
 }
 
-const calculateRecoveries = (item) => {
-  const cases = item.new_cases || item.New_cases || 0
-  const deaths = item.new_deaths || item.New_deaths || 0
-  return Math.max(0, cases - deaths)
-}
-
 const formatDate = (dateStr) => {
   if (!dateStr) return 'N/A'
   const date = new Date(dateStr)
@@ -691,10 +897,7 @@ const formatDate = (dateStr) => {
 
 // Initialisation
 onMounted(async () => {
-  await Promise.all([
-    loadMLData(),
-    loadRealData()
-  ])
+  await loadRealData()
 })
 </script>
 
@@ -822,83 +1025,6 @@ onMounted(async () => {
 .world-map {
   width: 100%;
   height: 100%;
-}
-
-.model-section {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 20px;
-  padding: 2rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.model-section h2 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 1.5rem;
-}
-
-.model-status {
-  margin-bottom: 2rem;
-}
-
-.status-indicator {
-  padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-  font-weight: 600;
-}
-
-.status-indicator.ready {
-  background: #eafaf1;
-  color: #10b981;
-  border: 2px solid #10b981;
-}
-
-.status-indicator.not-ready {
-  background: #fef2f2;
-  color: #f59e0b;
-  border: 2px solid #f59e0b;
-}
-
-.model-details p {
-  margin: 0.5rem 0;
-  font-size: 0.9rem;
-}
-
-.quick-prediction {
-  border-top: 1px solid #e5e7eb;
-  padding-top: 1.5rem;
-}
-
-.prediction-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.prediction-form select {
-  padding: 0.75rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 6px;
-}
-
-.prediction-result {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #f0f9ff;
-  padding: 1rem;
-  border-radius: 8px;
-  border-left: 4px solid #667eea;
-}
-
-.prediction-value {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #ef4444;
 }
 
 .charts-section {
@@ -1096,14 +1222,10 @@ onMounted(async () => {
 }
 
 @media (max-width: 1200px) {
-  .top-sections {
-    grid-template-columns: 1fr;
-  }
-  
   .insights-section {
     grid-template-columns: 1fr;
   }
-  
+
   .charts-grid {
     grid-template-columns: 1fr;
   }
