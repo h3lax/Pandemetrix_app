@@ -80,6 +80,7 @@
 import { ref, computed } from 'vue'
 import { uploadCSV } from '@/services/etlService'
 import TitleModal from './TitleModal.vue'
+import Papa from 'papaparse';
 
 const emit = defineEmits(['upload-success', 'upload-error'])
 
@@ -146,7 +147,6 @@ const handleFile = async (file) => {
     showError('Le fichier est trop volumineux (max 40MB)')
     return
   }
-  
   pendingFile.value = file
   uploadedFile.value = file
   showTitlePrompt.value = true
@@ -203,6 +203,17 @@ const announceToScreenReader = (message) => {
     announcer.textContent = message
     setTimeout(() => { announcer.textContent = '' }, 1000)
   }
+}
+
+const getHeaders= (file) =>{
+  Papa.parse(file, {
+    header: true,
+    skipEmptyLines: true,
+    complete: function (results) {
+      csvHeaders.value = results.meta.fields;
+      console.log(csvHeaders)
+    },
+  });
 }
 </script>
 
