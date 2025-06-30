@@ -33,3 +33,14 @@ export const checkDbStatus = async () => {
     throw new Error('Base de données non disponible')
   }
 }
+
+export const fetchFilteredData = async (params = {}) => {
+  try {
+    const queryParams = new URLSearchParams(params)
+    const response = await api.get(`/data?${queryParams}`)
+    return response.data
+  } catch (error) {
+    console.error(error)
+    throw error
+  }
+}

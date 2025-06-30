@@ -1,23 +1,49 @@
 <script setup>
-import { ref } from 'vue'
-import Header from './components/header/Header.vue';
+import { ref, onMounted } from 'vue'
+import Header from './components/header/Header.vue'
 
-const items = ref([
-        { title: 'Legal', gradiant: 'bg-linear-to-r from-gray-600 via-blue-500 to-cyan-400' },
-        { title: 'Accueil', gradiant: 'bg-linear-to-r from-gray-700 via-rose-500 to-orange-400' },
-        { title: 'Dashboard', gradiant: 'bg-[linear-gradient(60deg,_rgb(247,_149,_51),_rgb(243,_112,_85),_rgb(239,_78,_123),_rgb(161,_102,_171),_rgb(80,_115,_184),_rgb(16,_152,_173),_rgb(7,_179,_155),_rgb(111,_186,_130))]' },
-        { title: 'Etl', gradiant: 'bg-linear-to-r from-green-200 via-teal-400 to-cyan-600' },
-        { title: 'A Propos', gradiant: 'bg-linear-to-r from-yellow-500 via-lime-500 to-green-500' },
-        { title: 'Un autre', gradiant: 'bg-linear-to-r from-pink-200 via-purple-400 to-indigo-600' }
-    ]);
-
+onMounted(() => {
+  // Gestion du focus pour skip links
+  const skipLinks = document.querySelectorAll('.skip-link')
+  skipLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+      const target = document.querySelector(e.target.getAttribute('href'))
+      if (target) {
+        target.focus()
+        target.scrollIntoView()
+      }
+    })
+  })
+})
 </script>
 
 <template>
-  <div>
-    <Header />
-    <router-view />
+  <div id="app">
+    <!-- Skip Navigation -->
+    <div class="skip-links">
+      <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+      <a href="#main-navigation" class="skip-link">Aller à la navigation</a>
+    </div>
     
+    <Header />
+    
+    <main id="main-content" role="main" tabindex="-1">
+      <h1 class="sr-only">Application Pandemetrix</h1>
+      <router-view />
+    </main>
+    
+    <footer role="contentinfo" class="main-footer">
+      <div class="footer-content">
+        <p>&copy; 2025 Pandemetrix - Modèle prédictif de pandémies</p>
+        <nav aria-label="Liens du pied de page">
+          <a href="/about">À propos</a>
+          <a href="/contact">Contact</a>
+        </nav>
+      </div>
+    </footer>
+    
+    <!-- Live regions pour annonces -->
+    <div aria-live="polite" aria-atomic="true" class="sr-only" id="announcements"></div>
+    <div aria-live="assertive" aria-atomic="true" class="sr-only" id="alerts"></div>
   </div>
-
 </template>

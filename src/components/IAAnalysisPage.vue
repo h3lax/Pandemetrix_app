@@ -4,215 +4,396 @@
 
     <!-- Section 1 : Lancer des prédictions -->
     <section class="card">
-      <h2>Lancer des prédictions</h2>
-      <form @submit.prevent="runPrediction">
-        <label for="dataset-select">Jeu de données :</label>
-        <select id="dataset-select" v-model="selectedDataset" required>
-          <option disabled value="">Sélectionner un dataset</option>
-          <option v-for="ds in datasets" :key="ds.id" :value="ds.id">{{ ds.name }}</option>
-        </select>
-        <label for="model-select">Modèle IA :</label>
-        <select id="model-select" v-model="selectedModel" required>
-          <option disabled value="">Sélectionner un modèle</option>
-          <option v-for="model in models" :key="model.id" :value="model.id">
-            {{ model.name }} (v{{ model.version }})
-          </option>
-        </select>
-        <button type="submit" :disabled="loadingPrediction">
+      <h2>Lancer des prédictions COVID-19</h2>
+
+      <!-- État du modèle ML -->
+      <div v-if="mlHealth" class="ml-status"
+        :class="mlHealth.ready_for_predictions ? 'status-ready' : 'status-not-ready'">
+        <span>{{ mlHealth.ready_for_predictions ? '✅ Modèle prêt' : '⚠️ Modèle non disponible' }}</span>
+        <span class="ml-version">Version: {{ mlHealth.model_version }}</span>
+      </div>
+
+      <form @submit.prevent="runPrediction" v-if="mlHealth?.ready_for_predictions">
+        <div class="form-row">
+          <label for="country-select">Pays :</label>
+          <select id="country-select" v-model="selectedCountry" required>
+            <option disabled value="">Sélectionner un pays</option>
+            <option v-for="country in supportedCountries" :key="country" :value="country">
+              {{ country }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <label for="prediction-date">Date de prédiction :</label>
+          <input id="prediction-date" type="date" v-model="predictionDate" required :min="minDate" :max="maxDate" />
+        </div>
+
+        <div class="form-row">
+          <label for="new-cases">Nouveaux cas actuels :</label>
+          <input id="new-cases" type="number" v-model.number="inputData.new_cases" min="0" required
+            placeholder="ex: 1500" />
+        </div>
+
+        <div class="form-row">
+          <label for="people-vaccinated">Personnes vaccinées (total) :</label>
+          <input id="people-vaccinated" type="number" v-model.number="inputData.people_vaccinated" min="0" required
+            placeholder="ex: 50000000" />
+        </div>
+
+        <div class="form-row">
+          <label for="new-tests">Nouveaux tests :</label>
+          <input id="new-tests" type="number" v-model.number="inputData.new_tests" min="0" required
+            placeholder="ex: 100000" />
+        </div>
+
+        <div class="form-row">
+          <label for="hospital-occupancy">Occupation hospitalière :</label>
+          <input id="hospital-occupancy" type="number" v-model.number="inputData.daily_occupancy_hosp" min="0" required
+            placeholder="ex: 2500" />
+        </div>
+
+        <button type="submit" :disabled="loadingPrediction || !canPredict">
           <span v-if="loadingPrediction" class="spinner" aria-hidden="true"></span>
           {{ loadingPrediction ? "Prédiction en cours..." : "Lancer la prédiction" }}
         </button>
       </form>
+
+      <!-- Message si modèle non disponible -->
+      <div v-else class="model-unavailable">
+        <p>Le modèle ML n'est pas disponible.</p>
+        <button @click="initializeML" :disabled="initializing">
+          {{ initializing ? 'Initialisation...' : 'Créer données & entraîner' }}
+        </button>
+      </div>
+
+      <!-- Résultat de prédiction -->
       <div v-if="predictionResult" class="prediction-result">
         <h3>Résultat de la prédiction</h3>
-        <p><strong>Prédiction :</strong> {{ predictionResult.value }}</p>
-        <p><strong>Explication :</strong> {{ predictionResult.explanation }}</p>
-        <p class="meta">
-          <span>Modèle : {{ predictionResult.modelName }} (v{{ predictionResult.modelVersion }})</span>
-          <span>Dataset : {{ predictionResult.datasetName }}</span>
-          <span>Date : {{ formatDate(predictionResult.date) }}</span>
-        </p>
-      </div>
-      <div v-if="showChart" class="chart-container" style="margin-top:2em;">
-        <canvas ref="chartCanvas" aria-label="Graphique de modélisation" role="img"></canvas>
-      </div>
-    </section>
-
-    <!-- Section 2 : Comparateur de modèles IA -->
-    <section class="card">
-      <h2>Comparateur de modèles IA</h2>
-      <table class="model-table">
-        <thead>
-          <tr>
-            <th>Modèle</th>
-            <th>Version</th>
-            <th>Précision</th>
-            <th>Recall</th>
-            <th>F1-score</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="model in models" :key="model.id">
-            <td>{{ model.name }}</td>
-            <td>{{ model.version }}</td>
-            <td>{{ model.metrics.precision }}</td>
-            <td>{{ model.metrics.recall }}</td>
-            <td>{{ model.metrics.f1 }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
-
-    <!-- Section 3 : Timeline d’évolution d’une prédiction -->
-    <section class="card">
-      <h2>Timeline d’évolution d’une prédiction</h2>
-      <div class="timeline">
-        <div v-for="event in predictionTimeline" :key="event.date" class="timeline-event">
-          <div class="timeline-dot"></div>
-          <div class="timeline-content">
-            <span class="timeline-date">{{ formatDate(event.date) }}</span>
-            <span class="timeline-label">{{ event.label }}</span>
-            <span class="timeline-value">{{ event.value }}</span>
+        <div class="prediction-main">
+          <div class="prediction-value">
+            <span class="label">Décès prédits :</span>
+            <span class="value">{{ predictionResult.prediction.new_deaths_rounded }}</span>
+            <span class="value-precise">({{ predictionResult.prediction.new_deaths_predicted }})</span>
           </div>
+          <div class="prediction-confidence">
+            <span class="label">Confiance :</span>
+            <span>{{ predictionResult.prediction.confidence }}</span>
+          </div>
+        </div>
+
+        <div class="prediction-meta">
+          <span>Modèle : {{ predictionResult.model_info.version }}</span>
+          <span>R² : {{ predictionResult.model_info.r2_score }}</span>
+          <span>MAE : {{ predictionResult.model_info.mae }}</span>
+          <span>Date : {{ formatDate(predictionResult.timestamp) }}</span>
+        </div>
+
+        <!-- Données d'entrée utilisées -->
+        <details class="input-summary">
+          <summary>Données d'entrée utilisées</summary>
+          <div class="input-data">
+            <div>Pays : {{ predictionResult.prediction.country }}</div>
+            <div>Date : {{ predictionResult.prediction.date }}</div>
+            <div>Nouveaux cas : {{ predictionResult.input_data.new_cases.toLocaleString() }}</div>
+            <div>Personnes vaccinées : {{ predictionResult.input_data.people_vaccinated.toLocaleString() }}</div>
+            <div>Nouveaux tests : {{ predictionResult.input_data.new_tests.toLocaleString() }}</div>
+            <div>Occupation hospitalière : {{ predictionResult.input_data.daily_occupancy_hosp.toLocaleString() }}</div>
+          </div>
+        </details>
+      </div>
+
+      <!-- Graphique de prédiction -->
+      <div v-if="showChart" class="chart-container" style="margin-top:2em;">
+        <h4>Tendance prédictive</h4>
+        <canvas ref="chartCanvas" aria-label="Graphique de prédiction COVID-19" role="img"></canvas>
+        <div id="chart-description" class="sr-only">
+          Graphique montrant l'évolution prédite des décès COVID-19 sur une semaine pour {{ selectedCountry }}
         </div>
       </div>
     </section>
 
-    <!-- Section 4 : Versionning des modèles -->
-    <section class="card">
-      <h2>Versionning des modèles</h2>
-      <table class="version-table">
-        <thead>
-          <tr>
-            <th>Modèle</th>
-            <th>Version</th>
-            <th>Date de déploiement</th>
-            <th>Résultats produits</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="model in models" :key="model.id">
-            <td>{{ model.name }}</td>
-            <td>{{ model.version }}</td>
-            <td>{{ formatDate(model.deployedAt) }}</td>
-            <td>
-              <ul>
-                <li v-for="res in model.results" :key="res.id">
-                  {{ res.value }} ({{ formatDate(res.date) }})
-                </li>
-              </ul>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- Section 2 : Informations du modèle -->
+    <section class="card" v-if="modelInfo">
+      <h2>Informations du modèle IA</h2>
+      <div class="model-info-grid">
+        <div class="info-item">
+          <span class="label">Algorithme :</span>
+          <span>{{ modelInfo.algorithm }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Date d'entraînement :</span>
+          <span>{{ formatDate(modelInfo.training_date) }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Pays supportés :</span>
+          <span>{{ modelInfo.countries_count }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Features utilisées :</span>
+          <span>{{ (modelInfo.features_used && Array.isArray(modelInfo.features_used)) ? modelInfo.features_used.join(',') : 'Non disponible' }}</span>
+        </div>
+      </div>
+
+      <!-- Performance du modèle -->
+      <div class="model-performance">
+        <h4>Performance du modèle</h4>
+        <div class="performance-metrics">
+          <div class="metric">
+            <span class="metric-label">R² Score :</span>
+            <span class="metric-value">{{ modelInfo.performance?.test_r2?.toFixed(3) || 'N/A' }}</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">MAE :</span>
+            <span class="metric-value">{{ modelInfo.performance?.test_mae?.toFixed(2) || 'N/A' }}</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Amélioration vs baseline :</span>
+            <span class="metric-value">+{{ modelInfo.performance?.improvement_r2_percent?.toFixed(1) || 'N/A' }}%</span>
+          </div>
+        </div>
+      </div>
     </section>
   </div>
 </template>
 
 <script setup>
-import { ref, nextTick } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
+import MLService from '@/services/mlService'
 import Chart from 'chart.js/auto'
 
-const datasets = ref([
-  { id: 1, name: "Cas quotidiens France", data: [1200, 1500, 1800, 2100, 1700, 1600, 2000] },
-  { id: 2, name: "Décès quotidiens France", data: [30, 28, 35, 40, 38, 32, 29] }
-])
-const models = ref([
-  {
-    id: 1,
-    name: "RandomForest",
-    version: "1.2",
-    deployedAt: "2024-05-01T10:00:00Z",
-    metrics: { precision: 0.91, recall: 0.87, f1: 0.89 },
-    results: [
-      { id: 1, value: "Classe 1", date: "2024-05-10T12:00:00Z" },
-      { id: 2, value: "Classe 2", date: "2024-05-12T15:00:00Z" }
-    ]
-  },
-  {
-    id: 2,
-    name: "XGBoost",
-    version: "2.0",
-    deployedAt: "2024-05-15T09:00:00Z",
-    metrics: { precision: 0.93, recall: 0.89, f1: 0.91 },
-    results: [
-      { id: 3, value: "Classe 1", date: "2024-05-18T11:00:00Z" }
-    ]
-  }
-])
-
-const selectedDataset = ref("")
-const selectedModel = ref("")
+// État réactif
+const mlHealth = ref(null)
+const supportedCountries = ref([])
+const modelInfo = ref(null)
+const selectedCountry = ref('')
+const predictionDate = ref('')
 const loadingPrediction = ref(false)
+const loadingBatch = ref(false)
+const initializing = ref(false)
 const predictionResult = ref(null)
+const batchResults = ref(null)
 const showChart = ref(false)
-const chartCanvas = ref(null)
-let chartInstance = null
+const batchChart = ref(false)
 
-const runPrediction = async () => {
-  loadingPrediction.value = true
-  setTimeout(async () => {
-    const model = models.value.find(m => m.id === Number(selectedModel.value))
-    const dataset = datasets.value.find(d => d.id === Number(selectedDataset.value))
-    predictionResult.value = {
-      value: "Prévision : " + Math.round(dataset.data.reduce((a, b) => a + b) / dataset.data.length),
-      explanation: "Le modèle a prédit la moyenne sur la semaine.",
-      modelName: model.name,
-      modelVersion: model.version,
-      datasetName: dataset.name,
-      date: new Date().toISOString(),
-      data: dataset.data
-    }
-    loadingPrediction.value = false
-    showChart.value = true
-    await nextTick()
-    renderChart()
-  }, 1200)
+// Données d'entrée
+const inputData = ref({
+  new_cases: 1500,
+  people_vaccinated: 50000000,
+  new_tests: 100000,
+  daily_occupancy_hosp: 2500
+})
+
+// Références DOM
+const chartCanvas = ref(null)
+const batchChartCanvas = ref(null)
+let chartInstance = null
+let batchChartInstance = null
+
+// Calculs
+const canPredict = computed(() => {
+  return selectedCountry.value &&
+    predictionDate.value &&
+    inputData.value.new_cases >= 0 &&
+    inputData.value.people_vaccinated >= 0 &&
+    inputData.value.new_tests >= 0 &&
+    inputData.value.daily_occupancy_hosp >= 0
+})
+
+const minDate = computed(() => {
+  const today = new Date()
+  return today.toISOString().split('T')[0]
+})
+
+const maxDate = computed(() => {
+  const future = new Date()
+  future.setDate(future.getDate() + 30)
+  return future.toISOString().split('T')[0]
+})
+
+// Méthodes
+const initializeML = async () => {
+  initializing.value = true
+  try {
+    // Charger les CSV existants vers MongoDB
+    console.log('Chargement des CSV vers MongoDB...')
+    await MLService.loadCSVData()
+
+    // Entraîner avec les données chargées
+    console.log('Entraînement du modèle...')
+    await MLService.trainModel()
+    await loadMLComponents()
+    announceToScreenReader('Modèle ML initialisé avec succès')
+  } catch (error) {
+    console.error('Erreur initialisation ML:', error)
+    announceToScreenReader('Erreur lors de l\'initialisation du modèle')
+  } finally {
+    initializing.value = false
+  }
 }
 
-function renderChart() {
-  if (chartInstance) {
-    chartInstance.destroy()
+const loadMLComponents = async () => {
+  try {
+    const [healthData, countriesData, modelData] = await Promise.all([
+      MLService.checkMLHealth(),
+      MLService.getSupportedCountries().catch(() => ({ countries: [] })),
+      MLService.getModelInfo().catch(() => null)
+    ])
+
+    mlHealth.value = healthData
+    supportedCountries.value = countriesData.countries || []
+    modelInfo.value = modelData
+
+    // Sélectionner la France par défaut si disponible
+    if (supportedCountries.value.includes('France')) {
+      selectedCountry.value = 'France'
+    }
+
+    // Date par défaut : demain
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    predictionDate.value = tomorrow.toISOString().split('T')[0]
+
+  } catch (error) {
+    console.error('Erreur chargement composants ML:', error)
   }
-  const dataset = datasets.value.find(d => d.id === Number(selectedDataset.value))
-  if (!dataset) return
+}
+
+const runPrediction = async () => {
+  if (!canPredict.value) return
+
+  loadingPrediction.value = true
+  try {
+    const predictionData = {
+      country: selectedCountry.value,
+      date: predictionDate.value,
+      ...inputData.value
+    }
+
+    MLService.validatePredictionData(predictionData)
+
+    const result = await MLService.predict(predictionData)
+    predictionResult.value = result
+    showChart.value = true
+
+    await nextTick()
+    renderPredictionChart()
+
+    announceToScreenReader(`Prédiction réalisée: ${result.prediction.new_deaths_rounded} décès prédits`)
+  } catch (error) {
+    console.error('Erreur prédiction:', error)
+    announceToScreenReader('Erreur lors de la prédiction')
+    alert('Erreur prédiction: ' + error.message)
+  } finally {
+    loadingPrediction.value = false
+  }
+}
+
+const generateWeekPredictions = async () => {
+  if (!selectedCountry.value) return
+
+  loadingBatch.value = true
+  try {
+    const predictions = MLService.generatePredictionData(
+      selectedCountry.value,
+      predictionDate.value,
+      7
+    )
+
+    const result = await MLService.predictBatch(predictions)
+    batchResults.value = result
+    batchChart.value = true
+
+    await nextTick()
+    renderBatchChart(result.results)
+
+  } catch (error) {
+    console.error('Erreur prédictions multiples:', error)
+  } finally {
+    loadingBatch.value = false
+  }
+}
+
+const renderPredictionChart = () => {
+  if (chartInstance) chartInstance.destroy()
+
+  // Données simulées pour tendance
+  const days = ['Auj.', 'J+1', 'J+2', 'J+3', 'J+4', 'J+5', 'J+6']
+  const baseValue = predictionResult.value.prediction.new_deaths_predicted
+  const trendData = days.map((_, i) => baseValue + (Math.random() - 0.5) * baseValue * 0.2)
+
   chartInstance = new Chart(chartCanvas.value, {
     type: 'line',
     data: {
-      labels: ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"],
+      labels: days,
       datasets: [{
-        label: dataset.name,
-        data: dataset.data,
-        borderColor: '#1565c0',
-        backgroundColor: 'rgba(21,101,192,0.1)',
-        pointBackgroundColor: '#00bfae',
-        tension: 0.3
+        label: 'Décès prédits',
+        data: trendData,
+        borderColor: '#dc2626',
+        backgroundColor: 'rgba(220, 38, 38, 0.1)',
+        pointBackgroundColor: '#dc2626',
+        tension: 0.3,
+        fill: true
       }]
     },
     options: {
       responsive: true,
       plugins: {
-        legend: { display: true, labels: { color: '#222' } },
-        title: { display: true, text: 'Modélisation Covid', color: '#1565c0', font: { size: 18 } }
+        title: { display: true, text: `Tendance prédictive - ${selectedCountry.value}` }
       },
       scales: {
-        x: { ticks: { color: '#222' } },
-        y: { ticks: { color: '#222' } }
+        y: { beginAtZero: true, title: { display: true, text: 'Nombre de décès' } }
       }
     }
   })
 }
 
-// Timeline d’évolution d’une prédiction (exemple)
-const predictionTimeline = ref([
-  { date: "2024-05-10T12:00:00Z", label: "Prédiction initiale", value: "Classe 1" },
-  { date: "2024-05-12T15:00:00Z", label: "Correction manuelle", value: "Classe 2" },
-  { date: "2024-05-18T11:00:00Z", label: "Re-prédiction", value: "Classe 1" }
-])
+const renderBatchChart = (results) => {
+  if (batchChartInstance) batchChartInstance.destroy()
 
-function formatDate(dateStr) {
-  return new Date(dateStr).toLocaleString("fr-FR")
+  const labels = results.map(r => new Date(r.date).toLocaleDateString('fr'))
+  const data = results.map(r => r.new_deaths_predicted)
+
+  batchChartInstance = new Chart(batchChartCanvas.value, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Décès prédits par jour',
+        data,
+        backgroundColor: 'rgba(220, 38, 38, 0.8)',
+        borderColor: '#dc2626',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        title: { display: true, text: `Prédictions 7 jours - ${selectedCountry.value}` }
+      },
+      scales: {
+        y: { beginAtZero: true, title: { display: true, text: 'Décès prédits' } }
+      }
+    }
+  })
 }
+
+const formatDate = (dateStr) => {
+  return new Date(dateStr).toLocaleString('fr-FR')
+}
+
+const announceToScreenReader = (message) => {
+  const announcer = document.getElementById('announcements')
+  if (announcer) {
+    announcer.textContent = message
+    setTimeout(() => { announcer.textContent = '' }, 1000)
+  }
+}
+
+// Initialisation
+onMounted(async () => {
+  await loadMLComponents()
+})
 </script>
 
 <style scoped>
@@ -220,269 +401,296 @@ function formatDate(dateStr) {
   width: 100vw;
   max-width: 100vw;
   margin: 0;
-  padding: 2em 11em;
+  padding: 2em 1em;
   font-family: 'Segoe UI', Arial, sans-serif;
-  background: linear-gradient(120deg, #0048ff 0%, #02f76c 100%);
+  background: linear-gradient(120deg, var(--color-primary) 0%, var(--color-secondary) 100%);
   min-height: 100vh;
   box-sizing: border-box;
 }
-@media (max-width: 700px) {
+
+@media (min-width: 1024px) {
   .ia-analysis-page {
-    padding: 0.5em 0.2em;
+    padding: 2em 4em;
   }
 }
+
 .ia-analysis-page h1 {
   text-align: center;
-  color:rgb(255, 255, 255); 
+  color: var(--color-bg-primary);
   font-size: 2.4em;
   margin-bottom: 1.5em;
   font-weight: bold;
-  letter-spacing: 1px;
-  text-shadow: 0 2px 8pxrgb(0, 0, 0);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
+
 .card {
-  background: #fff;
+  background: var(--color-bg-primary);
   border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(0,123,255,0.07), 0 1.5px 6px rgba(40,167,69,0.04);
-  padding: 2em 1.5em;
+  box-shadow: 0 4px 24px rgba(21, 101, 192, 0.15);
+  padding: 2em;
   margin-bottom: 2em;
-  border-left: 7px solid #1565c0;
-  transition: box-shadow 0.2s;
+  border-left: 7px solid var(--color-primary);
 }
-@media (max-width: 700px) {
-  .card {
-    padding: 1.2em 0.5em;
-    margin-left: 0.2em;
-    margin-right: 0.2em;
-  }
-}
+
 .card h2 {
-  color: #1565c0;
+  color: var(--color-primary);
   font-size: 1.35em;
   margin-bottom: 1em;
   font-weight: bold;
-  letter-spacing: 0.5px;
 }
-.card form {
+
+.ml-status {
+  padding: 1em;
+  border-radius: 8px;
+  margin-bottom: 1.5em;
   display: flex;
-  flex-wrap: wrap;
-  gap: 1em 2em;
-  align-items: flex-end;
-  margin-bottom: 1.2em;
+  justify-content: space-between;
+  align-items: center;
 }
-.card label {
-  width: 100%;
-  font-size: 1em;
-  color: #222;
-  margin-bottom: 0.2em;
+
+.status-ready {
+  background: #eafaf1;
+  border: 2px solid var(--color-success);
+  color: var(--color-success);
+}
+
+.status-not-ready {
+  background: #fef2f2;
+  border: 2px solid var(--color-warning);
+  color: var(--color-warning);
+}
+
+.ml-version {
+  font-size: 0.9em;
+  opacity: 0.8;
+}
+
+.form-row {
+  margin-bottom: 1.5rem;
+}
+
+.form-row label {
+  display: block;
   font-weight: 600;
-  letter-spacing: 0.2px;
+  margin-bottom: 0.5rem;
+  color: var(--color-text-primary);
 }
-.card select,
-.card input {
-  width: 220px;
-  padding: 0.6em;
-  border-radius: 5px;
-  border: 2px solid #1565c0;
-  font-size: 1em;
-  margin-bottom: 0.5em;
-  background: #f5f8ff;
-  color: #1a237e;
-  font-weight: 500;
-  transition: border 0.2s, box-shadow 0.2s;
+
+.form-row input,
+.form-row select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 1rem;
 }
-.card select:focus,
-.card input:focus {
-  border-color: #00bfae;
-  outline: 2px solid #00bfae;
-  background: #e3f2fd;
+
+.form-row input:focus,
+.form-row select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(21, 101, 192, 0.2);
 }
-.card button {
-  background: linear-gradient(90deg, #1565c0 60%, #00bfae 100%);
-  color: #fff;
+
+button {
+  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  color: var(--color-bg-primary);
   border: none;
-  border-radius: 5px;
-  padding: 0.7em 1.5em;
+  border-radius: 6px;
+  padding: 0.75em 1.5em;
   font-size: 1.1em;
   font-weight: bold;
   cursor: pointer;
-  transition: background 0.2s, box-shadow 0.2s;
-  display: flex;
+  transition: all 0.2s ease;
+  display: inline-flex;
   align-items: center;
-  box-shadow: 0 2px 8px rgba(21,101,192,0.08);
+  gap: 0.5em;
 }
-.card button:focus {
-  outline: 3px solid #ffeb3b;
-  outline-offset: 2px;
-}
-.card button:disabled {
-  background: #b3d1fa;
-  color: #555;
+
+button:disabled {
+  background: var(--color-text-disabled);
   cursor: not-allowed;
-  box-shadow: none;
 }
-.spinner {
-  display: inline-block;
-  width: 18px;
-  height: 18px;
-  border: 2px solid #fff;
-  border-top: 2px solid #1565c0;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-right: 0.7em;
+
+.model-unavailable {
+  text-align: center;
+  padding: 2em;
+  background: #fef2f2;
+  border-radius: 8px;
+  border: 2px solid var(--color-warning);
 }
-@keyframes spin {
-  0% { transform: rotate(0deg);}
-  100% { transform: rotate(360deg);}
-}
+
 .prediction-result {
-  background: linear-gradient(90deg, #eafaf1 80%, #f5f8ff 100%);
-  border: 2px solid #00bfae;
-  border-radius: 10px;
-  padding: 1.2em 1.5em;
-  margin-top: 1em;
-  box-shadow: 0 2px 8px rgba(40,167,69,0.07);
-  color: #222;
+  background: linear-gradient(90deg, #eafaf1 0%, #f0f9ff 100%);
+  border: 2px solid var(--color-success);
+  border-radius: 12px;
+  padding: 1.5em;
+  margin-top: 2em;
 }
-.prediction-result h3 {
-  color: #00bfae;
-  margin-bottom: 0.5em;
-  font-size: 1.15em;
+
+.prediction-main {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2em;
+  margin-bottom: 1em;
 }
-.prediction-result p,
-.prediction-result strong,
-.prediction-result span {
-  color: #222;
+
+.prediction-value {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
 }
-.prediction-result .meta {
+
+.prediction-value .label {
+  font-size: 0.9em;
+  color: var(--color-text-secondary);
+}
+
+.prediction-value .value {
+  font-size: 2.5em;
+  font-weight: bold;
+  color: var(--color-error);
+}
+
+.prediction-value .value-precise {
   font-size: 1em;
-  color: #222;
-  margin-top: 0.7em;
+  color: var(--color-text-secondary);
+}
+
+.prediction-confidence {
+  text-align: right;
+}
+
+.prediction-meta {
   display: flex;
   gap: 1.5em;
   flex-wrap: wrap;
+  font-size: 0.9em;
+  color: var(--color-text-secondary);
+  border-top: 1px solid var(--color-border);
+  padding-top: 1em;
 }
-.chart-container {
-  width: 100%;
-  overflow-x: auto;
-}
-.model-table, .version-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
+
+.input-summary {
   margin-top: 1em;
-  background: #f5f8ff;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 1px 4px rgba(21,101,192,0.04);
 }
-.model-table th, .model-table td,
-.version-table th, .version-table td {
-  border-bottom: 1px solid #e0eaff;
-  padding: 1em 0.5em;
-  text-align: center;
-  font-size: 1em;
+
+.input-data {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.5em;
+  margin-top: 0.5em;
+  font-size: 0.9em;
 }
-.model-table th, .version-table th {
-  background: #1565c0;
-  color: #fff;
-  font-weight: bold;
-  font-size: 1.08em;
-  letter-spacing: 0.5px;
-}
-.model-table td, .version-table td {
-  color: #222;
-  background: #f5f8ff;
-}
-.model-table tr:nth-child(even),
-.version-table tr:nth-child(even) {
-  background: #eafaf1;
-}
-.model-table tr:hover,
-.version-table tr:hover {
-  background: #b3e5fc;
-  transition: background 0.2s;
-}
-.timeline {
-  margin-top: 1em;
-  border-left: 4px solid #1565c0;
-  padding-left: 2em;
-  position: relative;
-}
-.timeline-event {
-  position: relative;
+
+.model-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1em;
   margin-bottom: 1.5em;
 }
-.timeline-dot {
-  position: absolute;
-  left: -2.2em;
-  top: 0.3em;
-  width: 1.2em;
-  height: 1.2em;
-  background: #fff;
-  border: 4px solid #00bfae;
-  border-radius: 50%;
-  z-index: 1;
-  box-shadow: 0 2px 8px rgba(0,191,174,0.08);
-}
-.timeline-content {
-  background: #f5f8ff;
-  border-radius: 8px;
-  padding: 0.8em 1.2em;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+
+.info-item {
   display: flex;
   flex-direction: column;
-  gap: 0.2em;
-  border-left: 3px solid #00bfae;
-  color: #222;
+  gap: 0.25em;
 }
-.timeline-date {
-  font-size: 1em;
-  color: #333;
+
+.info-item .label {
+  font-size: 0.9em;
+  color: var(--color-text-secondary);
 }
-.timeline-label {
+
+.model-performance {
+  background: var(--color-bg-secondary);
+  border-radius: 8px;
+  padding: 1.5em;
+}
+
+.performance-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1em;
+}
+
+.metric {
+  text-align: center;
+}
+
+.metric-label {
+  display: block;
+  font-size: 0.9em;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.25em;
+}
+
+.metric-value {
+  font-size: 1.5em;
   font-weight: bold;
-  color: #1565c0;
-  font-size: 1.08em;
+  color: var(--color-primary);
 }
-.timeline-value {
-  color: #00bfae;
-  font-weight: bold;
-  font-size: 1.08em;
+
+.batch-controls {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  margin-bottom: 1.5em;
 }
-@media (max-width: 900px) {
-  .card form {
+
+.chart-container {
+  background: var(--color-bg-secondary);
+  border-radius: 8px;
+  padding: 1.5em;
+}
+
+.chart-container h4 {
+  margin-bottom: 1em;
+  color: var(--color-text-primary);
+}
+
+.chart-container canvas {
+  max-height: 400px;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--color-bg-primary);
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .prediction-main {
+    grid-template-columns: 1fr;
+  }
+
+  .prediction-meta {
     flex-direction: column;
-    gap: 0.7em;
+    gap: 0.5em;
   }
-  .card select,
-  .card input {
-    width: 100%;
+
+  .model-info-grid {
+    grid-template-columns: 1fr;
   }
-  .card {
-    padding: 1.2em 0.5em;
+
+  .performance-metrics {
+    grid-template-columns: 1fr;
   }
-  .timeline {
-    padding-left: 1em;
-  }
-}
-@media (max-width: 600px) {
-  .ia-analysis-page {
-    padding: 0.5em 0.1em;
-  }
-  .card {
-    padding: 0.7em 0.2em;
-    border-radius: 8px;
-    margin-left: 0.2em;
-    margin-right: 0.2em;
-  }
-  .timeline-content {
-    padding: 0.5em 0.5em;
-  }
-  .model-table th, .model-table td,
-  .version-table th, .version-table td {
-    padding: 0.5em 0.2em;
-    font-size: 0.95em;
+
+  .batch-controls {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 </style>
