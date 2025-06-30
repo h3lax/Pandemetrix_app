@@ -56,8 +56,8 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import CSVUploader from '@/components/etl/CSVUploader.vue'
-import URLDownloader from '@/components/etl/URLDownloader.vue'
+import CSVUploader from './CSVUploader.vue'
+import URLDownloader from './URLDownloader.vue'
 import { getETLJobs, deleteETLJob } from '@/services/etlService'
 
 const jobs = ref([])
