@@ -215,10 +215,6 @@ const maxDate = computed(() => {
 const initializeML = async () => {
   initializing.value = true
   try {
-    // Charger les CSV existants vers MongoDB
-    console.log('Chargement des CSV vers MongoDB...')
-    await MLService.loadCSVData()
-
     // Entraîner avec les données chargées
     console.log('Entraînement du modèle...')
     await MLService.trainModel()
@@ -272,7 +268,7 @@ const runPrediction = async () => {
 
     MLService.validatePredictionData(predictionData)
 
-    const result = await MLService.predict(predictionData)
+    const result = await MLService.predictBatch(predictionData)
     predictionResult.value = result
     showChart.value = true
 

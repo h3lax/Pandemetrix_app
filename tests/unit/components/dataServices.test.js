@@ -5,7 +5,7 @@ jest.mock('../../../src/services/api', () => ({
   get: jest.fn()
 }))
 
-import api from '../../../src/services/api'
+import {api} from '../../../src/services/api'
 
 describe('dataServices', () => {
   beforeEach(() => {

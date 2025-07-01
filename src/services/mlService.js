@@ -1,4 +1,4 @@
-import api from './api'
+import {etl} from './api'
 
 /**
  * Service pour les appels ML API
@@ -10,7 +10,7 @@ export class MLService {
    */
   static async checkMLHealth() {
     try {
-      const response = await api.get('/ml/health')
+      const response = await etl.get('/health')
       return response.data
     } catch (error) {
       console.error('Erreur ML health check:', error)
@@ -23,7 +23,7 @@ export class MLService {
    */
   static async getSupportedCountries() {
     try {
-      const response = await api.get('/ml/countries')
+      const response = await etl.get('/countries')
       return response.data
     } catch (error) {
       console.error('Erreur récupération pays ML:', error)
@@ -36,7 +36,7 @@ export class MLService {
    */
   static async getModelInfo() {
     try {
-      const response = await api.get('/ml/model-info')
+      const response = await etl.get('/model-info')
       return response.data
     } catch (error) {
       console.error('Erreur info modèle ML:', error)
@@ -49,7 +49,7 @@ export class MLService {
    */
   static async predict(predictionData) {
     try {
-      const response = await api.post('/ml/predict', predictionData)
+      const response = await etl.post('/ml/predict', predictionData)
       return response.data
     } catch (error) {
       console.error('Erreur prédiction ML:', error)
@@ -62,7 +62,7 @@ export class MLService {
    */
   static async predictBatch(predictionsArray) {
     try {
-      const response = await api.post('/ml/predict-batch', {
+      const response = await etl.post('/predict-batch', {
         predictions: predictionsArray
       })
       return response.data
@@ -77,7 +77,7 @@ export class MLService {
    */
   static async trainModel() {
     try {
-      const response = await api.post('/ml/train')
+      const response = await etl.get('/train_model')
       return response.data
     } catch (error) {
       console.error('Erreur entraînement ML:', error)
