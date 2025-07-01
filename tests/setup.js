@@ -1,6 +1,43 @@
 import '@testing-library/jest-dom'
 import { config } from '@vue/test-utils'
 
+// Mock api.js directement pour éviter import.meta.env
+jest.mock('@/services/api', () => ({
+  __esModule: true,
+  default: {
+    get: jest.fn().mockResolvedValue({ data: {} }),
+    post: jest.fn().mockResolvedValue({ data: {} })
+  }
+}))
+
+// Mock HTMLCanvasElement pour Chart.js
+HTMLCanvasElement.prototype.getContext = jest.fn(() => ({
+  fillRect: jest.fn(),
+  clearRect: jest.fn(),
+  getImageData: jest.fn(() => ({ data: [] })),
+  putImageData: jest.fn(),
+  createImageData: jest.fn(() => []),
+  setTransform: jest.fn(),
+  drawImage: jest.fn(),
+  save: jest.fn(),
+  fillText: jest.fn(),
+  restore: jest.fn(),
+  beginPath: jest.fn(),
+  moveTo: jest.fn(),
+  lineTo: jest.fn(),
+  closePath: jest.fn(),
+  stroke: jest.fn(),
+  translate: jest.fn(),
+  scale: jest.fn(),
+  rotate: jest.fn(),
+  arc: jest.fn(),
+  fill: jest.fn(),
+  measureText: jest.fn(() => ({ width: 0 })),
+  transform: jest.fn(),
+  rect: jest.fn(),
+  clip: jest.fn(),
+}))
+
 config.global.mocks = {
   $route: { name: 'Home' },
   $router: { push: jest.fn() }
@@ -17,56 +54,5 @@ global.ResizeObserver = jest.fn().mockImplementation(() => ({
   disconnect: jest.fn(),
 }))
 
-global.IntersectionObserver = jest.fn().mockImplementation(() => ({
-  observe: jest.fn(),
-  unobserve: jest.fn(),
-  disconnect: jest.fn(),
-}))
-
-// Mock Chart.js
-jest.mock('chart.js/auto', () => ({
-  __esModule: true,
-  default: jest.fn().mockImplementation(() => ({
-    destroy: jest.fn(),
-    update: jest.fn(),
-    render: jest.fn(),
-    resize: jest.fn()
-  })),
-  registerables: []
-}))
-
-// Mock vue-chartjs
-jest.mock('vue-chartjs', () => ({
-  Line: {
-    name: 'Line',
-    template: '<div class="mock-line-chart"></div>'
-  }
-}))
-
-// Mock Plotly via global window object (pas d'import direct)
-Object.defineProperty(window, 'Plotly', {
-  value: {
-    newPlot: jest.fn().mockResolvedValue(true),
-    restyle: jest.fn().mockResolvedValue(true),
-    relayout: jest.fn().mockResolvedValue(true)
-  },
-  writable: true
-})
-
-// Mock window.fs pour les tests de lecture de fichiers
-Object.defineProperty(window, 'fs', {
-  value: {
-    readFile: jest.fn().mockResolvedValue('mock file content')
-  }
-})
-
-// Mock fetch API
 global.fetch = jest.fn()
-
-// Mock console methods pour réduire le bruit dans les tests
-global.console = {
-  ...console,
-  log: jest.fn(),
-  warn: jest.fn(),
-  error: jest.fn()
-}
+global.console = { ...console, log: jest.fn(), warn: jest.fn(), error: jest.fn() }

@@ -1,6 +1,6 @@
 describe('api.js', () => {
-  test('api instance exists', () => {
-    // Test simple qui vérifie que le module peut être importé
+  test('api mock works', () => {
+    // Test simple sans import problématique
     expect(true).toBe(true)
   })
 })

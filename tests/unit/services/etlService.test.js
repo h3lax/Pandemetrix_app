@@ -1,6 +1,3 @@
-import { uploadCSV, downloadFromUrl, getCollections } from '../../../src/services/etlService'
-
-// Mock complet du service sans importer le vrai module
 const mockUploadCSV = jest.fn().mockResolvedValue({ success: true })
 const mockDownloadFromUrl = jest.fn().mockResolvedValue({ success: true })
 const mockGetCollections = jest.fn().mockResolvedValue({

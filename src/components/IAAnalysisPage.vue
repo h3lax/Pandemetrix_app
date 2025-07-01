@@ -89,7 +89,7 @@
           </div>
         </div>
 
-        <div class="prediction-meta">
+        <div v-if="predictionResult && predictionResult.model_info" class="prediction-meta">
           <span>Modèle : {{ predictionResult.model_info.version }}</span>
           <span>R² : {{ predictionResult.model_info.r2_score }}</span>
           <span>MAE : {{ predictionResult.model_info.mae }}</span>

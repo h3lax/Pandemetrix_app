@@ -1,8 +1,3 @@
-<script setup>
-import { ref } from 'vue'
-
-</script>
-
 
 <template>
   <header class="w-full bg-white px-8 py-4 flex items-center justify-between fixed z-10">
