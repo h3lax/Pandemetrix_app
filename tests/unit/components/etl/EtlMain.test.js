@@ -24,10 +24,11 @@ describe('EtlMain.vue', () => {
       }
     })
     
-    // Test direct des méthodes
-    expect(typeof wrapper.vm.handleUploadSuccess).toBe('function')
-    expect(typeof wrapper.vm.handleDownloadSuccess).toBe('function')
-    expect(typeof wrapper.vm.refreshJobs).toBe('function')
+    // Test les méthodes qui existent réellement
+    expect(typeof wrapper.vm.handleUploadError).toBe('function')
+    expect(typeof wrapper.vm.handleDownloadError).toBe('function')
+    expect(typeof wrapper.vm.getStatusStyle).toBe('function')
+    expect(typeof wrapper.vm.formatDate).toBe('function')
     
     wrapper.unmount()
   })
