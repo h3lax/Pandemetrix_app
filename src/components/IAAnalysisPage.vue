@@ -275,22 +275,55 @@ const runPrediction = async () => {
 
   loadingPrediction.value = true
   try {
-    const predictionData = {
-      country: selectedCountry.value,
-      date: predictionDate.value,
-      ...inputData.value
+    // Construire directement 7 prédictions (J+0 à J+6)
+    const predictions = []
+    const baseDate = new Date(predictionDate.value)
+    
+    for (let i = 0; i < 7; i++) {
+      const currentDate = new Date(baseDate)
+      currentDate.setDate(currentDate.getDate() + i)
+      
+      predictions.push({
+        country: selectedCountry.value,
+        date: currentDate.toISOString().split('T')[0],
+        new_cases: inputData.value.new_cases,
+        people_vaccinated: inputData.value.people_vaccinated,
+        new_tests: inputData.value.new_tests,
+        daily_occupancy_hosp: inputData.value.daily_occupancy_hosp
+      })
     }
 
-    MLService.validatePredictionData(predictionData)
+    // Valider la première prédiction
+    MLService.validatePredictionData(predictions[0])
 
-    const result = await MLService.predictBatch(predictionData)
-    predictionResult.value = result
+    // Envoyer le tableau directement à predictBatch
+    const result = await MLService.predictBatch(predictions)
+    
+    // Adapter la structure pour le template
+    const firstResult = result.results[0]
+    predictionResult.value = {
+      prediction: {
+        new_deaths_rounded: Math.round(firstResult.new_deaths_predicted),
+        new_deaths_predicted: firstResult.new_deaths_predicted,
+        confidence: "High",
+        country: firstResult.country,
+        date: firstResult.date
+      },
+      input_data: predictions[0],
+      model_info: {
+        version: result.model_version,
+        r2_score: modelInfo.value?.performance?.test_r2,
+        mae: modelInfo.value?.performance?.test_mae
+      },
+      timestamp: result.timestamp,
+      weekResults: result.results // Les 7 résultats pour le graphique
+    }
+    
     showChart.value = true
-
     await nextTick()
     renderPredictionChart()
 
-    announceToScreenReader(`Prédiction réalisée: ${result.prediction.new_deaths_rounded} décès prédits`)
+    announceToScreenReader(`Prédiction réalisée: ${firstResult.new_deaths_predicted} décès prédits`)
   } catch (error) {
     console.error('Erreur prédiction:', error)
     announceToScreenReader('Erreur lors de la prédiction')
@@ -300,38 +333,13 @@ const runPrediction = async () => {
   }
 }
 
-const generateWeekPredictions = async () => {
-  if (!selectedCountry.value) return
-
-  loadingBatch.value = true
-  try {
-    const predictions = MLService.generatePredictionData(
-      selectedCountry.value,
-      predictionDate.value,
-      7
-    )
-
-    const result = await MLService.predictBatch(predictions)
-    batchResults.value = result
-    batchChart.value = true
-
-    await nextTick()
-    renderBatchChart(result.results)
-
-  } catch (error) {
-    console.error('Erreur prédictions multiples:', error)
-  } finally {
-    loadingBatch.value = false
-  }
-}
-
 const renderPredictionChart = () => {
   if (chartInstance) chartInstance.destroy()
 
-  // Données simulées pour tendance
+  // Utiliser les vraies prédictions au lieu de données simulées
   const days = ['Auj.', 'J+1', 'J+2', 'J+3', 'J+4', 'J+5', 'J+6']
-  const baseValue = predictionResult.value.prediction.new_deaths_predicted
-  const trendData = days.map((_, i) => baseValue + (Math.random() - 0.5) * baseValue * 0.2)
+  const trendData = predictionResult.value.weekResults?.map(r => r.new_deaths_predicted) ||
+    [predictionResult.value.prediction.new_deaths_predicted] // fallback
 
   chartInstance = new Chart(chartCanvas.value, {
     type: 'line',
