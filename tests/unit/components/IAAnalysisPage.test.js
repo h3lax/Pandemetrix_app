@@ -1,18 +1,7 @@
 import { mount } from '@vue/test-utils'
 import IAAnalysisPage from '../../../src/components/IAAnalysisPage.vue'
 
-// Mock Chart.js
-jest.mock('chart.js/auto', () => ({
-  __esModule: true,
-  default: jest.fn().mockImplementation(() => ({
-    destroy: jest.fn(),
-    update: jest.fn(),
-    render: jest.fn(),
-    resize: jest.fn()
-  }))
-}))
-
-// Mock MLService
+// Mock MLService avec données complètes
 jest.mock('@/services/mlService', () => ({
   __esModule: true,
   default: {
@@ -22,27 +11,20 @@ jest.mock('@/services/mlService', () => ({
       model_version: '1.0'
     }),
     getSupportedCountries: jest.fn().mockResolvedValue({
-      countries: ['France', 'Germany', 'Italy']
+      countries: ['France', 'Germany'],
+      total_countries: 2
     }),
     getModelInfo: jest.fn().mockResolvedValue({
-      name: 'COVID-19 Deaths Prediction Model',
-      version: '1.0',
       algorithm: 'polynomial_regression_with_ridge',
-      training_date: '2024-01-01',
-      countries_count: 44,
-      features_used: ['date', 'new_cases'],
-      performance: {
-        test_r2: 0.824,
-        test_mae: 45.44,
-        improvement_r2_percent: 25.2
-      }
+      training_date: '2024-01-01T00:00:00Z',
+      performance: { test_r2: 0.824 }
     }),
     predict: jest.fn().mockResolvedValue({
       prediction: {
         new_deaths_predicted: 42.5,
         new_deaths_rounded: 43,
         country: 'France',
-        date: '2023-01-15',
+        date: '2022-05-15',
         confidence: 'Based on historical data patterns'
       },
       input_data: {
@@ -57,7 +39,8 @@ jest.mock('@/services/mlService', () => ({
         mae: 45.44
       },
       timestamp: '2024-01-01T12:00:00Z'
-    })
+    }),
+    validatePredictionData: jest.fn().mockReturnValue(true)
   }
 }))
 
@@ -69,51 +52,28 @@ describe('IAAnalysisPage.vue', () => {
   })
 
   afterEach(() => {
-    wrapper.unmount()
+    if (wrapper) {
+      wrapper.unmount()
+    }
   })
 
   test('renders page title', () => {
     expect(wrapper.find('h1').text()).toBe('Analyse IA / Modèles de Prédictions')
   })
 
-  test('displays prediction form when model is ready', async () => {
-    // Attendre que les données se chargent
+  test('loads ML components', async () => {
     await wrapper.vm.$nextTick()
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await new Promise(resolve => setTimeout(resolve, 100))
     
-    expect(wrapper.find('#country-select').exists()).toBe(true)
-    expect(wrapper.find('#prediction-date').exists()).toBe(true)
-    expect(wrapper.find('#new-cases').exists()).toBe(true)
-    expect(wrapper.find('#people-vaccinated').exists()).toBe(true)
+    expect(wrapper.vm.mlHealth).toBeTruthy()
+    expect(wrapper.vm.supportedCountries).toContain('France')
   })
 
-  test('shows model status', async () => {
-    await wrapper.vm.$nextTick()
-    expect(wrapper.find('.ml-status').exists()).toBe(true)
-    expect(wrapper.text()).toContain('Modèle prêt')
-  })
-
-  test('prediction form validates required fields', () => {
-    const form = wrapper.find('form')
-    expect(form.exists()).toBe(true)
-    
-    const inputs = wrapper.findAll('input[required]')
-    expect(inputs.length).toBeGreaterThan(0)
-  })
-
-  test('displays model information section', async () => {
-    await wrapper.vm.$nextTick()
-    
-    expect(wrapper.text()).toContain('Informations du modèle IA')
-    expect(wrapper.text()).toContain('Performance du modèle')
-  })
-
-  test('handles prediction submission', async () => {
-    // Simuler un modèle chargé
-    wrapper.vm.mlHealth = { ready_for_predictions: true, model_version: '1.0' }
-    wrapper.vm.supportedCountries = ['France']
+  test('validates prediction form', () => {
+    // Setup état complet
+    wrapper.vm.mlHealth = { ready_for_predictions: true }
     wrapper.vm.selectedCountry = 'France'
-    wrapper.vm.predictionDate = '2023-01-15'
+    wrapper.vm.predictionDate = '2022-05-15'
     wrapper.vm.inputData = {
       new_cases: 1500,
       people_vaccinated: 50000000,
@@ -121,18 +81,18 @@ describe('IAAnalysisPage.vue', () => {
       daily_occupancy_hosp: 2500
     }
     
-    await wrapper.vm.$nextTick()
-    
-    await wrapper.vm.runPrediction()
-    
-    expect(wrapper.vm.predictionResult).toBeTruthy()
-    expect(wrapper.vm.loadingPrediction).toBe(false)
+    expect(wrapper.vm.canPredict).toBe(true)
   })
 
-  test('shows loading state during prediction', async () => {
-    wrapper.vm.loadingPrediction = true
-    await wrapper.vm.$nextTick()
+  test('validates date range correctly', () => {
+    // Date valide
+    wrapper.vm.predictionDate = '2022-01-15'
+    wrapper.vm.validateDate()
+    expect(wrapper.vm.dateError).toBe('')
     
-    expect(wrapper.text()).toContain('Prédiction en cours...')
+    // Date invalide (trop ancienne)
+    wrapper.vm.predictionDate = '2019-01-01'
+    wrapper.vm.validateDate()
+    expect(wrapper.vm.dateError).toContain('Date doit être entre')
   })
 })

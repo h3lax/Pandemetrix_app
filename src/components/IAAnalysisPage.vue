@@ -26,7 +26,14 @@
 
         <div class="form-row">
           <label for="prediction-date">Date de prédiction :</label>
-          <input id="prediction-date" type="date" v-model="predictionDate" required :min="minDate" :max="maxDate" />
+          <input id="prediction-date" type="date" v-model="predictionDate" required :min="minDate" :max="maxDate"
+            @input="validateDate" />
+          <div v-if="dateError" class="error-message" role="alert">
+            {{ dateError }}
+          </div>
+          <div class="help-text">
+            📅 Plage valide : {{ minDate }} à {{ maxDate }}
+          </div>
         </div>
 
         <div class="form-row">
@@ -82,7 +89,7 @@
           </div>
         </div>
 
-        <div class="prediction-meta">
+        <div v-if="predictionResult && predictionResult.model_info" class="prediction-meta">
           <span>Modèle : {{ predictionResult.model_info.version }}</span>
           <span>R² : {{ predictionResult.model_info.r2_score }}</span>
           <span>MAE : {{ predictionResult.model_info.mae }}</span>
@@ -131,7 +138,8 @@
         </div>
         <div class="info-item">
           <span class="label">Features utilisées :</span>
-          <span>{{ (modelInfo.features_used && Array.isArray(modelInfo.features_used)) ? modelInfo.features_used.join(',') : 'Non disponible' }}</span>
+          <span>{{ (modelInfo.features_used && Array.isArray(modelInfo.features_used)) ?
+            modelInfo.features_used.join(',') : 'Non disponible' }}</span>
         </div>
       </div>
 
@@ -175,13 +183,23 @@ const predictionResult = ref(null)
 const batchResults = ref(null)
 const showChart = ref(false)
 const batchChart = ref(false)
+const dateError = ref('')
+
+const validateDate = () => {
+  const date = predictionDate.value
+  if (date < minDate.value || date > maxDate.value) {
+    dateError.value = `Date doit être entre ${minDate.value} et ${maxDate.value}`
+  } else {
+    dateError.value = ''
+  }
+}
 
 // Données d'entrée
 const inputData = ref({
-  new_cases: 1500,
-  people_vaccinated: 50000000,
-  new_tests: 100000,
-  daily_occupancy_hosp: 2500
+  new_cases: 15000,
+  people_vaccinated: 45000000,
+  new_tests: 200000,
+  daily_occupancy_hosp: 15000
 })
 
 // Références DOM
@@ -194,6 +212,8 @@ let batchChartInstance = null
 const canPredict = computed(() => {
   return selectedCountry.value &&
     predictionDate.value &&
+    predictionDate.value >= minDate.value &&
+    predictionDate.value <= maxDate.value &&
     inputData.value.new_cases >= 0 &&
     inputData.value.people_vaccinated >= 0 &&
     inputData.value.new_tests >= 0 &&
@@ -201,14 +221,12 @@ const canPredict = computed(() => {
 })
 
 const minDate = computed(() => {
-  const today = new Date()
-  return today.toISOString().split('T')[0]
+  return '2020-12-02'
 })
 
+
 const maxDate = computed(() => {
-  const future = new Date()
-  future.setDate(future.getDate() + 30)
-  return future.toISOString().split('T')[0]
+  return '2022-06-22'
 })
 
 // Méthodes
@@ -240,15 +258,12 @@ const loadMLComponents = async () => {
     supportedCountries.value = countriesData.countries || []
     modelInfo.value = modelData
 
-    // Sélectionner la France par défaut si disponible
     if (supportedCountries.value.includes('France')) {
       selectedCountry.value = 'France'
     }
 
-    // Date par défaut : demain
-    const tomorrow = new Date()
-    tomorrow.setDate(tomorrow.getDate() + 1)
-    predictionDate.value = tomorrow.toISOString().split('T')[0]
+    // Date par défaut dans la plage valide
+    predictionDate.value = '2022-05-15'
 
   } catch (error) {
     console.error('Erreur chargement composants ML:', error)

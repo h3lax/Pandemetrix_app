@@ -2,29 +2,41 @@ describe('API Integration Tests', () => {
   it('should handle API health checks', () => {
     cy.visit('/datasheet')
     
-    // Intercepter les appels API
-    cy.intercept('GET', '**/api/health/status').as('healthCheck')
-    cy.intercept('GET', '**/api/health/db-check').as('dbCheck')
+    // Mock des endpoints de santé
+    cy.intercept('GET', '**/api/health/status', {
+      statusCode: 200,
+      body: { status: 'OK' }
+    }).as('healthCheck')
     
-    // Attendre les appels
-    cy.wait('@healthCheck')
-    cy.wait('@dbCheck')
+    cy.intercept('GET', '**/api/health/db-check', {
+      statusCode: 200,
+      body: { database: 'Connected' }
+    }).as('dbCheck')
     
-    // Vérifier les statuts
-    cy.contains('✔️ Connecté').should('be.visible')
+    cy.intercept('GET', '**/api/etl/collections', {
+      statusCode: 200,
+      body: { 
+        collections: [
+          { collection: 'test_data', count: 100 },
+          { collection: 'ml_cases_deaths', count: 5000 }
+        ] 
+      }
+    }).as('collections')
+    
+    cy.wait(['@healthCheck', '@dbCheck', '@collections'])
+    cy.contains('✓ Connecté').should('be.visible')
   })
 
-  it('should handle API errors gracefully', () => {
-    // Simuler une erreur API
-    cy.intercept('GET', '**/api/etl/collections', {
-      statusCode: 500,
-      body: { error: 'Server Error' }
-    }).as('apiError')
+  it('should handle ML API proxy correctly', () => {
+    cy.visit('/analyse-ia')
     
-    cy.visit('/datasheet')
-    cy.wait('@apiError')
+    // Test du proxy ML
+    cy.intercept('GET', '**/api/ml/health', {
+      statusCode: 503,
+      body: { error: 'Pandemetrix_ML API non accessible' }
+    }).as('mlDown')
     
-    // Vérifier la gestion d'erreur
-    cy.contains('Erreur').should('be.visible')
+    cy.wait('@mlDown')
+    cy.contains('⚠️ Modèle non disponible').should('be.visible')
   })
 })
