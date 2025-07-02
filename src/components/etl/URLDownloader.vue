@@ -4,19 +4,35 @@
       <h3>Au choix</h3>
 
       <button
-        @click="() => startDownload('OMS_Daily')"
+        @click="() => startDownload('cases_deaths')"
         :disabled="isDownloading"
       >
-        <span v-if="isDownloading && currentCode === 'OMS_Daily'" class="spinner-small"></span>
-        {{ isDownloading && currentCode === 'OMS_Daily' ? 'Téléchargement...' : 'Télécharger OMS' }}
+        <span v-if="isDownloading && currentCode === 'cases_deaths'" class="spinner-small"></span>
+        {{ isDownloading && currentCode === 'cases_deaths' ? 'Téléchargement...' : 'Cases and Deaths' }}
       </button>
 
       <button
-        @click="() => startDownload('Color_Test')"
+        @click="() => startDownload('vaccinations_global')"
         :disabled="isDownloading"
       >
-        <span v-if="isDownloading && currentCode === 'Color_Test'" class="spinner-small"></span>
-        {{ isDownloading && currentCode === 'Color_Test' ? 'Téléchargement...' : 'Télécharger Couleur sample' }}
+        <span v-if="isDownloading && currentCode === 'vaccinations_global'" class="spinner-small"></span>
+        {{ isDownloading && currentCode === 'vaccinations_global' ? 'Téléchargement...' : 'Vaccinations' }}
+      </button>
+
+      <button
+        @click="() => startDownload('hospital')"
+        :disabled="isDownloading"
+      >
+        <span v-if="isDownloading && currentCode === 'hospital'" class="spinner-small"></span>
+        {{ isDownloading && currentCode === 'hospital' ? 'Téléchargement...' : 'Hospitalizations' }}
+      </button>
+
+      <button
+        @click="() => startDownload('testing')"
+        :disabled="isDownloading"
+      >
+        <span v-if="isDownloading && currentCode === 'testing'" class="spinner-small"></span>
+        {{ isDownloading && currentCode === 'testing' ? 'Téléchargement...' : 'Testing' }}
       </button>
 
       <div v-if="downloadSuccess" class="success-msg">

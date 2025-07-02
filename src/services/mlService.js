@@ -1,4 +1,4 @@
-import api from './api'
+import {etl} from './api'
 
 /**
  * Service pour les appels ML API
@@ -46,6 +46,7 @@ export class MLService {
         throw new Error(`HTTP ${response.status}`)
       }
       return await response.json()
+
     } catch (error) {
       console.error('Erreur récupération pays ML:', error)
       return { countries: [], total_countries: 0 }

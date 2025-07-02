@@ -11,46 +11,6 @@
         <URLDownloader @download-success="handleDownloadSuccess" @download-error="handleDownloadError" />
       </div>
     </div>
-    <div class="etl-jobs">
-      <div class="etl-jobs-header">
-        <h2>Jobs ETL</h2>
-        <button @click="refreshJobs" :disabled="loadingJobs">
-          {{ loadingJobs ? 'Chargement...' : 'Actualiser' }}
-        </button>
-      </div>
-      <div v-if="loadingJobs" class="etl-jobs-loading">
-        <div class="spinner"></div>
-        <p>Chargement des jobs...</p>
-      </div>
-      <div v-else-if="jobs.length === 0" class="etl-jobs-empty">
-        Aucun job ETL trouvé
-      </div>
-      <div v-else>
-        <div
-          v-for="job in jobs"
-          :key="job.id"
-          class="etl-job-card"
-        >
-          <div>
-            <h3>{{ job.filename }}</h3>
-            <p>{{ job.type }} - {{ formatDate(job.created_at) }}</p>
-            <span :style="getStatusStyle(job.status)" class="etl-job-status">
-              {{ job.status }}
-            </span>
-          </div>
-          <div class="etl-job-actions">
-            <button @click="viewJob(job)">Voir</button>
-            <button
-              @click="deleteJob(job.id)"
-              :disabled="deletingJobs.includes(job.id)"
-              class="delete"
-            >
-              {{ deletingJobs.includes(job.id) ? '...' : 'Supprimer' }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -58,42 +18,15 @@
 import { ref, onMounted } from 'vue'
 import CSVUploader from './CSVUploader.vue'
 import URLDownloader from './URLDownloader.vue'
-import { getETLJobs, deleteETLJob } from '@/services/etlService'
 
 const jobs = ref([])
 const loadingJobs = ref(false)
 const deletingJobs = ref([])
 
-const handleUploadSuccess = () => refreshJobs()
+
 const handleUploadError = (error) => { console.error('Erreur upload:', error) }
-const handleDownloadSuccess = () => refreshJobs()
 const handleDownloadError = (error) => { console.error('Erreur téléchargement:', error) }
 
-const refreshJobs = async () => {
-  loadingJobs.value = true
-  try {
-    jobs.value = await getETLJobs()
-  } catch (error) {
-    console.error('Erreur chargement jobs:', error)
-  } finally {
-    loadingJobs.value = false
-  }
-}
-const deleteJob = async (jobId) => {
-  if (!confirm('Êtes-vous sûr de vouloir supprimer ce job ?')) return
-  deletingJobs.value.push(jobId)
-  try {
-    await deleteETLJob(jobId)
-    jobs.value = jobs.value.filter(job => job.id !== jobId)
-  } catch (error) {
-    console.error('Erreur suppression job:', error)
-  } finally {
-    deletingJobs.value = deletingJobs.value.filter(id => id !== jobId)
-  }
-}
-const viewJob = (job) => {
-  alert('Voir job: ' + JSON.stringify(job, null, 2))
-}
 const getStatusStyle = (status) => {
   switch (status) {
     case 'completed': return { background: '#eafaf1', color: '#28a745', border: '1px solid #28a745' }
@@ -105,7 +38,6 @@ const getStatusStyle = (status) => {
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleString('fr-FR')
 }
-onMounted(() => { refreshJobs() })
 </script>
 
 <style scoped>
