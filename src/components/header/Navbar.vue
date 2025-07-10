@@ -1,14 +1,17 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import NavItem from './NavItem.vue'
 
-const items = ref([
-  { name: 'Accueil', route: 'Accueil' },
-  { name: 'Upload Dataset', route: 'EtlManager' },
-  { name: 'Dashboard', route: 'Dashboard' },
-  { name: 'Status', route: 'Datasheet' },
-  { name: 'Analysis-IA', route: 'IAAnalysisPage' },
-  { name: 'À Propos', route: 'About' },
+const { t } = useI18n()
+
+const items = computed(() => [
+  { name: t('nav.home'), route: 'Accueil' },
+  { name: t('nav.upload'), route: 'EtlManager' },
+  { name: t('nav.dashboard'), route: 'Dashboard' },
+  { name: t('nav.status'), route: 'Datasheet' },
+  { name: t('nav.analysis'), route: 'IAAnalysisPage' },
+  { name: t('nav.about'), route: 'About' },
 ])
 </script>
 

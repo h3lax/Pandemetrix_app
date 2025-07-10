@@ -1,54 +1,54 @@
 <template>
   <main class="status-page">
-    <h1 class="page-title">Statut du système</h1>
+    <h1 class="page-title">{{ t('status.title') }}</h1>
 
     <section aria-labelledby="api-status-title" class="status-section">
-      <h2 id="api-status-title" class="section-title">État des services</h2>
+      <h2 id="api-status-title" class="section-title">{{ t('status.servicesStatus') }}</h2>
       <div class="status-grid">
         <div class="status-item">
-          <span class="status-label">API :</span>
+          <span class="status-label">{{ t('status.api') }} :</span>
           <span 
             :class="apiStatus ? 'success' : 'error'" 
             class="status-value"
-            :aria-label="`API ${apiStatus ? 'connectée' : 'déconnectée'}`"
+            :aria-label="`${t('status.api')} ${apiStatus ? t('status.connected') : t('status.disconnected')}`"
           >
-            {{ apiStatus ? '✓ Connecté' : '✗ Déconnecté' }}
+            {{ apiStatus ? `✓ ${t('status.connected')}` : `✗ ${t('status.disconnected')}` }}
           </span>
         </div>
         <div class="status-item">
-          <span class="status-label">Base de données :</span>
+          <span class="status-label">{{ t('status.database') }} :</span>
           <span 
             :class="dbStatus ? 'success' : 'error'" 
             class="status-value"
-            :aria-label="`Base de données ${dbStatus ? 'connectée' : 'déconnectée'}`"
+            :aria-label="`${t('status.database')} ${dbStatus ? t('status.connected') : t('status.disconnected')}`"
           >
-            {{ dbStatus ? '✓ Connecté' : '✗ Déconnecté' }}
+            {{ dbStatus ? `✓ ${t('status.connected')}` : `✗ ${t('status.disconnected')}` }}
           </span>
         </div>
       </div>
     </section>
 
     <section aria-labelledby="data-title" class="data-section">
-      <h2 id="data-title" class="section-title">Collections de données</h2>
+      <h2 id="data-title" class="section-title">{{ t('status.dataCollections') }}</h2>
       
       <div v-if="loading" class="loading" role="status" aria-live="polite">
         <div class="spinner" aria-hidden="true"></div>
-        <p>Chargement des données...</p>
+        <p>{{ t('status.loading') }}</p>
       </div>
       
       <div v-else-if="error" class="error-alert" role="alert">
-        <strong>Erreur :</strong> {{ error }}
-        <button @click="checkStatuses" class="btn btn-secondary">Réessayer</button>
+        <strong>{{ t('status.error') }} :</strong> {{ error }}
+        <button @click="checkStatuses" class="btn btn-secondary">{{ t('status.retry') }}</button>
       </div>
       
       <p v-else-if="!data.length" class="empty-state">
-        Aucune collection de données disponible
+        {{ t('status.noCollectionsAvailable') }}
       </p>
       
       <div v-else class="table-container">
         <table class="data-table" role="table" aria-labelledby="data-title">
           <caption class="table-caption">
-            Liste des {{ data.length }} collections de données avec leur nombre de documents
+            {{ t('status.collectionsWithDocuments', { count: data.length }) }}
           </caption>
           <thead>
             <tr>
@@ -58,7 +58,7 @@
                   @click="sortBy('collection')"
                   :aria-sort="getSortDirection('collection')"
                 >
-                  Nom de la collection
+                  {{ t('status.collectionName') }}
                   <span class="sort-icon" aria-hidden="true">{{ getSortIcon('collection') }}</span>
                 </button>
               </th>
@@ -68,7 +68,7 @@
                   @click="sortBy('count')"
                   :aria-sort="getSortDirection('count')"
                 >
-                  Nombre de documents
+                  {{ t('status.documentCount') }}
                   <span class="sort-icon" aria-hidden="true">{{ getSortIcon('count') }}</span>
                 </button>
               </th>
@@ -78,7 +78,7 @@
             <tr v-for="(item, index) in sortedData" :key="item.collection">
               <th scope="row" class="collection-name">{{ item.collection }}</th>
               <td class="document-count">
-                <span :aria-label="`${item.count.toLocaleString()} documents`">
+                <span :aria-label="`${item.count.toLocaleString()} ${t('dashboard.documents')}`">
                   {{ item.count.toLocaleString() }}
                 </span>
               </td>
@@ -92,8 +92,11 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { checkAppStatus, checkDbStatus } from '@/services/dataServices'
 import { getCollections } from '@/services/etlService'
+
+const { t } = useI18n()
 
 const data = ref([])
 const loading = ref(true)
@@ -126,7 +129,7 @@ const sortBy = (field) => {
     sortDirection.value = 'asc'
   }
   
-  announceToScreenReader(`Tableau trié par ${field} ${sortDirection.value === 'asc' ? 'croissant' : 'décroissant'}`)
+  announceToScreenReader(`${t('status.sortedBy')} ${field} ${sortDirection.value === 'asc' ? t('status.ascending') : t('status.descending')}`)
 }
 
 const getSortDirection = (field) => {
@@ -174,7 +177,7 @@ onMounted(async () => {
       error.value = err.message
     }
   } else {
-    error.value = 'API non disponible'
+    error.value = t('status.apiNotAvailable')
   }
   
   loading.value = false

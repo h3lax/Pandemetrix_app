@@ -1,7 +1,7 @@
 <template>
   <div class="csv-uploader">
     <fieldset class="upload-fieldset">
-      <legend class="upload-legend">Upload de fichier CSV</legend>
+      <legend class="upload-legend">{{ t('etl.uploadCsv') }}</legend>
       
       <div
         class="drop-zone"
@@ -28,8 +28,8 @@
         
         <div class="drop-content">
           <div v-if="isUploading" class="state uploading-state">
-            <div class="spinner" role="status" aria-label="Upload en cours"></div>
-            <p>Upload en cours...</p>
+            <div class="spinner" role="status" :aria-label="t('etl.uploading')"></div>
+            <p>{{ t('etl.uploading') }}</p>
           </div>
           
           <div v-else-if="uploadSuccess" class="state success-state">
@@ -37,7 +37,7 @@
               <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.1"/>
               <path d="M8 12.5l2.5 2.5L16 9" stroke="currentColor" stroke-width="2" fill="none"/>
             </svg>
-            <p><strong>Fichier uploadé avec succès</strong></p>
+            <p><strong>{{ t('etl.success') }}</strong></p>
             <p class="filename">{{ uploadedFile?.name }}</p>
           </div>
           
@@ -46,7 +46,7 @@
               <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.1"/>
               <path d="M9 9l6 6M15 9l-6 6" stroke="currentColor" stroke-width="2"/>
             </svg>
-            <p><strong>Erreur d'upload</strong></p>
+            <p><strong>{{ t('etl.error') }}</strong></p>
             <p id="upload-error" class="error-details">{{ errorMessage }}</p>
           </div>
           
@@ -55,8 +55,8 @@
               <rect x="4" y="4" width="16" height="16" rx="4" fill="currentColor" opacity="0.1"/>
               <path d="M12 8v6M9 11l3 3 3-3" stroke="currentColor" stroke-width="2"/>
             </svg>
-            <p><strong>Glissez votre fichier CSV ici</strong></p>
-            <p id="upload-help">ou cliquez pour sélectionner</p>
+            <p><strong>{{ t('etl.dragDrop') }}</strong></p>
+            <p id="upload-help">{{ t('etl.clickSelect') }}</p>
           </div>
         </div>
       </div>
@@ -64,8 +64,8 @@
     
     <!-- Live region pour annonces -->
     <div aria-live="polite" aria-atomic="true" class="sr-only">
-      <span v-if="uploadSuccess">Fichier {{ uploadedFile?.name }} uploadé avec succès</span>
-      <span v-if="uploadError">Erreur d'upload : {{ errorMessage }}</span>
+      <span v-if="uploadSuccess">{{ t('etl.success') }} {{ uploadedFile?.name }}</span>
+      <span v-if="uploadError">{{ t('etl.error') }} : {{ errorMessage }}</span>
     </div>
     
     <TitleModal
@@ -78,9 +78,11 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { uploadCSV } from '@/services/etlService'
 import TitleModal from './TitleModal.vue'
 
+const { t } = useI18n()
 const emit = defineEmits(['upload-success', 'upload-error'])
 
 const fileInput = ref(null)
@@ -101,10 +103,10 @@ const dropZoneClasses = computed(() => ({
 }))
 
 const dropZoneLabel = computed(() => {
-  if (isUploading.value) return 'Upload en cours, veuillez patienter'
-  if (uploadSuccess.value) return 'Fichier uploadé avec succès'
-  if (uploadError.value) return `Erreur d'upload : ${errorMessage.value}`
-  return 'Zone de dépôt pour fichier CSV. Cliquez ou glissez un fichier ici'
+  if (isUploading.value) return t('etl.uploading')
+  if (uploadSuccess.value) return t('etl.success')
+  if (uploadError.value) return `${t('etl.error')}: ${errorMessage.value}`
+  return `${t('etl.dragDrop')} ${t('etl.clickSelect')}`
 })
 
 const ariaDescribedby = computed(() => {
@@ -139,11 +141,11 @@ const handleFileSelect = (e) => {
 
 const handleFile = async (file) => {
   if (!file.name.toLowerCase().endsWith('.csv')) {
-    showError('Veuillez sélectionner un fichier CSV')
+    showError(t('etl.invalidFile'))
     return
   }
   if (file.size > 60 * 1024 * 1024) {
-    showError('Le fichier est trop volumineux (max 40MB)')
+    showError(t('etl.fileTooBig'))
     return
   }
   
@@ -162,7 +164,7 @@ const uploadFile = async (file, title) => {
     isUploading.value = false
     uploadSuccess.value = true
     emit('upload-success', { file })
-    announceToScreenReader(`Fichier ${file.name} uploadé avec succès`)
+    announceToScreenReader(`${t('etl.success')} ${file.name}`)
   } catch (error) {
     isUploading.value = false
     showError(error.message)
@@ -174,7 +176,7 @@ const showError = (message) => {
   uploadError.value = true
   errorMessage.value = message
   uploadSuccess.value = false
-  announceToScreenReader(`Erreur d'upload : ${message}`)
+  announceToScreenReader(`${t('etl.error')}: ${message}`)
 }
 
 const resetUpload = () => {

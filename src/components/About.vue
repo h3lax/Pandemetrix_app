@@ -1,15 +1,19 @@
 <template>
   <div class="about-page">
-    <h1 class="about-title">À propos de Pandemetrix</h1>
+    <h1 class="about-title">{{ t('about.title') }}</h1>
     <p class="about-text">
-      Pandemetrix est un modèle prédictif conçu pour analyser et anticiper l'évolution des pandémies.
-      Il fournit des outils visuels et analytiques afin d'aider les chercheurs, médecins et décideurs à prendre des mesures éclairées.
+      {{ t('about.description') }}
     </p>
     <p class="about-subtitle">
-      Ce projet utilise des technologies modernes comme Vue.js, des APIs en Python, et des visualisations interactives.
+      {{ t('about.technologies') }}
     </p>
   </div>
 </template>
+
+<script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
+</script>
 
 <style scoped>
 .about-page {
@@ -39,4 +43,3 @@
   .about-text { font-size: 1.125rem; }
 }
 </style>
-

@@ -9,15 +9,15 @@
     @keydown.esc="handleCancel"
   >
     <div class="modal-content" ref="modalContent">
-      <h2 id="modal-title" class="modal-title">Titre du jeu de données</h2>
+      <h2 id="modal-title" class="modal-title">{{ t('etl.datasetTitle') }}</h2>
       <p id="modal-description" class="modal-description">
-        Veuillez saisir un titre descriptif pour votre jeu de données
+        {{ t('etl.enterTitle') }}
       </p>
       
       <form @submit.prevent="submitTitle" novalidate>
         <div class="form-group">
           <label for="dataset-title" class="required">
-            Titre du dataset
+            {{ t('etl.titleDataset') }}
           </label>
           <input 
             id="dataset-title"
@@ -25,14 +25,14 @@
             v-model="title" 
             type="text"
             class="title-input"
-            placeholder="Ex: Données COVID-19 mai 2025"
+            :placeholder="t('etl.titlePlaceholder')"
             required
             minlength="3"
             :aria-invalid="hasError"
             aria-describedby="title-help title-error"
           />
           <div id="title-help" class="help-text">
-            Le titre doit contenir au moins 3 caractères
+            {{ t('etl.titleMinLength') }}
           </div>
           <div 
             v-if="hasError" 
@@ -40,7 +40,7 @@
             class="error-message"
             role="alert"
           >
-            Le titre est requis (minimum 3 caractères)
+            {{ t('etl.titleRequiredError') }}
           </div>
         </div>
         
@@ -50,14 +50,14 @@
             class="btn btn-primary"
             :disabled="!canSubmit"
           >
-            Valider
+            {{ t('common.validate') }}
           </button>
           <button 
             type="button" 
             class="btn btn-secondary" 
             @click="handleCancel"
           >
-            Annuler
+            {{ t('common.cancel') }}
           </button>
         </div>
       </form>
@@ -67,6 +67,9 @@
 
 <script setup>
 import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const title = ref('')
 const attempted = ref(false)
