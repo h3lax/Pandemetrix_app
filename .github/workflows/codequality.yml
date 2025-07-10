@@ -1,0 +1,117 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    - cron: '0 0 * * 1' # Weekly on Monday
+
+jobs:
+  quality-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run ESLint
+      run: npx eslint . --ext .js,.vue --format json --output-file eslint-results.json
+      continue-on-error: true
+    
+    - name: Annotate ESLint results
+      uses: ataylorme/eslint-annotate-action@v2
+      if: always()
+      with:
+        repo-token: "${{ secrets.GITHUB_TOKEN }}"
+        report-json: "eslint-results.json"
+    
+    - name: Check code formatting
+      run: npx prettier --check "src/**/*.{js,vue,css,scss,md}"
+      continue-on-error: true
+    
+    - name: Analyze bundle size
+      run: |
+        npm run build
+        npx bundlesize
+      continue-on-error: true
+    
+    - name: Check for outdated dependencies
+      run: |
+        npm outdated --json > outdated.json || true
+        echo "Outdated dependencies:"
+        cat outdated.json
+    
+    - name: Upload quality reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: quality-reports
+        path: |
+          eslint-results.json
+          outdated.json
+
+  security-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run npm audit
+      run: |
+        npm audit --audit-level=moderate --json > audit-results.json || true
+        npm audit --audit-level=moderate
+      continue-on-error: true
+    
+    - name: Run Snyk security scan
+      uses: snyk/actions/node@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --severity-threshold=high --json > snyk-results.json
+      continue-on-error: true
+    
+    - name: Upload security reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: security-reports
+        path: |
+          audit-results.json
+          snyk-results.json
+
+  dependency-review:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Dependency Review
+      uses: actions/dependency-review-action@v4
+      with:
+        fail-on-severity: moderate
+        allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC
