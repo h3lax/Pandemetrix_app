@@ -1,13 +1,13 @@
 <template>
   <main class="dashboard">
     <div class="dashboard-header">
-      <h1 class="dashboard-title">PANDEMETRIX ANALYTICS</h1>
+      <h1 class="dashboard-title">{{ t('dashboard.title') }}</h1>
       <div class="kpi-cards">
         <div class="kpi-card infection">
           <div class="kpi-icon">🦠</div>
           <div class="kpi-content">
             <span class="kpi-value">{{ kpiData?.infectionRate || 'N/A' }}%</span>
-            <span class="kpi-label">Taux d'infection</span>
+            <span class="kpi-label">{{ t('dashboard.infectionRate') }}</span>
             <span class="kpi-trend" :class="casesChangeClass">{{ kpiData?.casesChange || 'N/A' }}%</span>
           </div>
         </div>
@@ -15,7 +15,7 @@
           <div class="kpi-icon">💀</div>
           <div class="kpi-content">
             <span class="kpi-value">{{ kpiData?.mortalityRate || 'N/A' }}%</span>
-            <span class="kpi-label">Taux de mortalité</span>
+            <span class="kpi-label">{{ t('dashboard.mortalityRate') }}</span>
             <span class="kpi-trend" :class="deathsChangeClass">{{ kpiData?.deathsChange || 'N/A' }}%</span>
           </div>
         </div>
@@ -23,9 +23,9 @@
           <div class="kpi-icon">✅</div>
           <div class="kpi-content">
             <span class="kpi-value">{{ kpiData?.recoveryRate || 'N/A' }}%</span>
-            <span class="kpi-label">Taux de guérison</span>
+            <span class="kpi-label">{{ t('dashboard.recoveryRate') }}</span>
             <span class="kpi-trend positive">{{ ((kpiData?.totalCases || 0) - (kpiData?.totalCases || 0) *
-              (kpiData?.mortalityRate || 0) / 100).toLocaleString() }} survivants</span>
+              (kpiData?.mortalityRate || 0) / 100).toLocaleString() }} {{ t('dashboard.survivors') }}</span>
           </div>
         </div>
       </div>
@@ -34,7 +34,7 @@
     <div class="dashboard-grid">
       <!-- Répartition par région -->
       <section class="map-section">
-        <h2>Répartition par pays</h2>
+        <h2>{{ t('dashboard.worldDistribution') }}</h2>
         <div class="world-map-container">
           <div ref="worldMap" class="world-map"></div>
         </div>
@@ -43,23 +43,23 @@
       <!-- Graphiques avec contrôles -->
       <section class="charts-section">
         <div class="chart-controls">
-          <h2>Évolution temporelle</h2>
+          <h2>{{ t('dashboard.temporalEvolution') }}</h2>
           <div class="control-buttons">
             <button v-for="period in timePeriods" :key="period.value"
               @click="selectedPeriod = period.value; loadRealData()"
               :class="{ active: selectedPeriod === period.value }" class="period-btn">
-              {{ period.label }}
+              {{ t(`dashboard.periods.${period.value}`) }}
             </button>
           </div>
         </div>
 
         <div class="charts-grid">
           <div class="chart-item">
-            <h3>Nouveaux cas par jour</h3>
+            <h3>{{ t('dashboard.newCasesPerDay') }}</h3>
             <canvas ref="casesChart" width="400" height="200"></canvas>
           </div>
           <div class="chart-item">
-            <h3>Taux de mortalité</h3>
+            <h3>{{ t('dashboard.mortalityTitle') }}</h3>
             <canvas ref="mortalityChart" width="400" height="200"></canvas>
           </div>
         </div>
@@ -70,43 +70,43 @@
         <div class="insight-card primary">
           <div class="insight-icon">📊</div>
           <div class="insight-content">
-            <h3>Région la plus touchée</h3>
+            <h3>{{ t('dashboard.mostAffectedRegion') }}</h3>
             <p class="insight-value">{{ topRegion.name }}</p>
-            <p class="insight-detail">{{ topRegion.percentage }}% des cas totaux</p>
+            <p class="insight-detail">{{ topRegion.percentage }}% {{ t('dashboard.totalCases') }}</p>
           </div>
         </div>
 
         <div class="insight-card secondary">
           <div class="insight-icon">📈</div>
           <div class="insight-content">
-            <h3>Tendance hebdomadaire</h3>
+            <h3>{{ t('dashboard.weeklyTrend') }}</h3>
             <p class="insight-value">{{ weeklyTrend.value }}%</p>
-            <p class="insight-detail">{{ weeklyTrend.direction }} par rapport à la semaine dernière</p>
+            <p class="insight-detail">{{ weeklyTrend.direction }} {{ t('dashboard.lastWeek') }}</p>
           </div>
         </div>
 
         <div class="insight-card success">
           <div class="insight-icon">🎯</div>
           <div class="insight-content">
-            <h3>Total pays suivis</h3>
+            <h3>{{ t('dashboard.totalCountriesTracked') }}</h3>
             <p class="insight-value">{{ totalCountries }}</p>
-            <p class="insight-detail">Pays avec données disponibles</p>
+            <p class="insight-detail">{{ t('dashboard.countriesWithData') }}</p>
           </div>
         </div>
       </section>
 
       <!-- Collections de données -->
       <section class="data-section">
-        <h2>Collections de données</h2>
+        <h2>{{ t('dashboard.dataCollections') }}</h2>
         <div v-if="collections.length > 0" class="collections-grid">
           <div v-for="collection in collections" :key="collection.collection" class="collection-item">
             <h4>{{ collection.collection }}</h4>
-            <p>{{ collection.count.toLocaleString() }} documents</p>
+            <p>{{ collection.count.toLocaleString() }} {{ t('dashboard.documents') }}</p>
           </div>
         </div>
         <div v-else class="no-data">
-          <p>Aucune collection de données disponible</p>
-          <router-link to="/etl" class="btn btn-primary">Charger des données</router-link>
+          <p>{{ t('dashboard.noDataCollections') }}</p>
+          <router-link to="/etl" class="btn btn-primary">{{ t('dashboard.loadData') }}</router-link>
         </div>
       </section>
     </div>
@@ -115,9 +115,12 @@
 
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { getCollections } from '@/services/etlService'
 import Chart from 'chart.js/auto'
 import DashboardService from '@/services/dashboardService'
+
+const { t } = useI18n()
 
 // État réactif pour les données réelles
 const collections = ref([])
@@ -138,30 +141,30 @@ const kpiData = ref({
 
 // Insights calculés
 const topRegion = computed(() => {
-  if (realData.value.length === 0) return { name: 'N/A', percentage: 0 }
+  if (realData.value.length === 0) return { name: t('dashboard.noCountryDetected'), percentage: 0 }
 
   // **LISTE COMPLÈTE D'EXCLUSION** - Continents, groupes et catégories statistiques
   const exclusions = new Set([
     // Continents
-    'Africa', 'Asia', 'Europe', 'North America', 'South America', 
+    'Africa', 'Asia', 'Europe', 'North America', 'South America',
     'Oceania', 'Antarctica', 'Americas',
-    
+
     // Régions WHO/OMS
-    'European Region', 'Africa Region', 'South-East Asia', 
+    'European Region', 'Africa Region', 'South-East Asia',
     'Western Pacific', 'Eastern Mediterranean',
-    
+
     // Groupes économiques
     'European Union', 'European Union (27)',
     'High-income countries', 'Low-income countries',
     'Lower-middle-income countries', 'Upper-middle-income countries',
-    
+
     // Catégories statistiques "World excl."
     'World', 'World excl. China', 'World excl. China and South Korea',
     'World excl. China, South Korea, Japan and Singapore',
-    
+
     // Catégories régionales "excl."
     'Asia excl. China',
-    
+
     // Autres
     'International', 'Unknown', 'Other'
   ])
@@ -183,29 +186,18 @@ const topRegion = computed(() => {
     }
   })
 
-  // Debug
-  console.log('Nombre de vrais pays:', Object.keys(countryStats).length)
-
   // Trier par nombre de cas décroissant
   const sortedCountries = Object.entries(countryStats)
     .filter(([country, cases]) => cases > 0) // Exclure les pays à 0 cas
     .sort(([, a], [, b]) => b - a)
 
-  console.log('Top 5 VRAIS pays:', sortedCountries.slice(0, 5).map(([name, cases]) => ({ name, cases })))
-
   // **PRENDRE LE PREMIER VRAI PAYS**
   if (sortedCountries.length === 0) {
-    return { name: 'Aucun pays détecté', percentage: 0 }
+    return { name: t('dashboard.noCountryDetected'), percentage: 0 }
   }
 
   const [topCountryName, topCountryCases] = sortedCountries[0]
   const percentage = totalCases > 0 ? ((topCountryCases / totalCases) * 100).toFixed(1) : 0
-
-  console.log('VRAI pays le plus touché:', {
-    name: topCountryName,
-    cases: topCountryCases,
-    percentage: percentage
-  })
 
   return {
     name: String(topCountryName),
@@ -217,7 +209,7 @@ const weeklyTrend = computed(() => {
   const change = kpiData.value.casesChange || 0
   return {
     value: Math.abs(change).toFixed(1),
-    direction: change > 0 ? 'Augmentation' : 'Diminution'
+    direction: change > 0 ? t('dashboard.increase') : t('dashboard.decrease')
   }
 })
 
@@ -291,9 +283,6 @@ const prepareCountryData = () => {
   const countryStats = {}
   const zeroCountries = new Set()
 
-  console.log('Préparation données pays pour', realData.value.length, 'éléments')
-  console.log('Échantillon des 5 premiers éléments:', realData.value.slice(0, 5))
-
   realData.value.forEach(item => {
     const country = item.country || 'Unknown'
     const cases = parseInt(item.new_cases || 0)
@@ -311,11 +300,6 @@ const prepareCountryData = () => {
       zeroCountries.add(country)
     }
   })
-
-  console.log('Pays avec zéro cas/décès:', Array.from(zeroCountries).slice(0, 10))
-  console.log('Pays avec données > 0:', Object.entries(countryStats)
-    .filter(([country, data]) => data.cases > 0 || data.deaths > 0)
-    .slice(0, 5))
 
   return countryStats
 }
@@ -342,15 +326,13 @@ const createWorldMap = async () => {
     const p75 = sortedCases[Math.floor(sortedCases.length * 0.75)]
     const p90 = sortedCases[Math.floor(sortedCases.length * 0.9)]
 
-    console.log('Distribution des cas:', { p25, p50, p75, p90, max: Math.max(...cases) })
-
     const data = [{
       type: 'choropleth',
       locationmode: 'country names',
       locations: countries,
       z: cases,
       text: countries.map(country =>
-        `${country}<br>Cas: ${countryData[country].cases.toLocaleString()}<br>Décès: ${countryData[country].deaths.toLocaleString()}`
+        `${country}<br>${t('dashboard.casesLabel')}: ${countryData[country].cases.toLocaleString()}<br>${t('dashboard.deathsLabel')}: ${countryData[country].deaths.toLocaleString()}`
       ),
       hovertemplate: '%{text}<extra></extra>',
       colorscale: [
@@ -364,7 +346,7 @@ const createWorldMap = async () => {
       zmin: 0,
       zmax: p90, // Limiter à 90e percentile pour éviter les valeurs extrêmes
       colorbar: {
-        title: 'Nouveaux cas',
+        title: t('dashboard.newCasesLabel'),
         titlefont: { size: 14 },
         thickness: 15
       }
@@ -372,7 +354,7 @@ const createWorldMap = async () => {
 
     const layout = {
       title: {
-        text: 'Distribution mondiale des cas COVID-19',
+        text: t('dashboard.globalDistribution'),
         font: { size: 16, color: '#1f2937' }
       },
       geo: {
@@ -402,8 +384,6 @@ const loadRealData = async () => {
   try {
     loading.value = true
 
-    console.log('Chargement des données réelles pour période:', selectedPeriod.value)
-
     // Ajuster la limite selon la période pour optimiser les performances
     let limitData
     switch (selectedPeriod.value) {
@@ -418,36 +398,19 @@ const loadRealData = async () => {
     let dataResult = await DashboardService.getCovidDataByPeriod(selectedPeriod.value, limitData)
 
     if (!dataResult || dataResult.length === 0) {
-      console.error('Aucune donnée reçue du service')
       dataResult = []
     }
 
     // **NOUVEAU : Si c'est la première fois ou 1y, récupérer TOUTES les données**
     if (allData.value.length === 0 || selectedPeriod.value === '1y') {
       try {
-        console.log('Chargement de toutes les données pour le taux d\'infection fixe...')
         const allDataResult = await DashboardService.getCovidDataByPeriod('1y', 20000)
         allData.value = allDataResult || []
-        console.log('Données complètes chargées:', allData.value.length, 'éléments')
-
-        // Log pour vérifier la couverture temporelle
-        if (allData.value.length > 0) {
-          const dates = allData.value
-            .map(item => item.date || item.date_reported)
-            .filter(Boolean)
-            .sort()
-          console.log('Période couverte:', dates[0], 'à', dates[dates.length - 1])
-        }
       } catch (error) {
         console.warn('Erreur chargement données complètes:', error)
         // Fallback : utiliser les données actuelles comme toutes les données
         allData.value = dataResult
       }
-    }
-
-    console.log('Données récupérées pour la période:', dataResult.length, 'éléments')
-    if (dataResult.length > 0) {
-      console.log('Échantillon données période:', dataResult[0])
     }
 
     // Assigner les données filtrées pour les graphiques
@@ -561,8 +524,6 @@ const calculateKPIs = () => {
     .sort((a, b) => new Date(a.date) - new Date(b.date))
 
   // **CALCUL ADAPTATIF pour casesChange ET deathsChange**
-  console.log(`Période ${selectedPeriod.value}, données disponibles:`, dailyArray.length)
-
   const calculateChange = (dataArray, field) => {
     switch (selectedPeriod.value) {
       case '7d':
@@ -628,8 +589,6 @@ const calculateKPIs = () => {
   casesChange = calculateChange(dailyArray, 'cases')
   deathsChange = calculateChange(dailyArray, 'deaths')
 
-  console.log('Changements calculés:', { casesChange, deathsChange })
-
   const totalPopulation = 8000000000
 
   kpiData.value = {
@@ -655,16 +614,6 @@ const calculateKPIs = () => {
     // Total pour info
     totalCases: totalCasesCumulative
   }
-
-  console.log(`KPI pour ${selectedPeriod.value}:`, {
-    infectionRate: kpiData.value.infectionRate,
-    mortalityRate: kpiData.value.mortalityRate,
-    recoveryRate: kpiData.value.recoveryRate,
-    casesChange: kpiData.value.casesChange,
-    deathsChange: kpiData.value.deathsChange,
-    dataPoints: dailyArray.length,
-    usingAllData: dataForFixedRates === allData.value
-  })
 }
 
 const updateCountryCount = () => {
@@ -673,8 +622,6 @@ const updateCountryCount = () => {
 }
 
 const prepareLocalChartData = () => {
-  console.log('Préparation données graphiques, total items:', realData.value.length)
-
   if (realData.value.length === 0) {
     return { labels: [], casesData: [], mortalityRates: [] }
   }
@@ -727,9 +674,6 @@ const prepareLocalChartData = () => {
   // Prendre les derniers points selon la période
   const finalData = sortedData.slice(-maxPoints)
 
-  console.log('Données après groupement et tri:', finalData.length)
-  console.log('Échantillon:', finalData.slice(0, 3))
-
   const labels = finalData.map(item => {
     const date = new Date(item.date)
     // Format des labels selon la période
@@ -750,12 +694,6 @@ const prepareLocalChartData = () => {
 
   const mortalityRates = finalData.map(item => {
     return item.cases > 0 ? parseFloat(((item.deaths / item.cases) * 100).toFixed(2)) : 0
-  })
-
-  console.log('Données finales:', {
-    labels: labels.length,
-    cases: casesData.length,
-    rates: mortalityRates.length
   })
 
   return { labels, casesData, mortalityRates }
@@ -783,7 +721,7 @@ const createCasesChart = (labels, data) => {
     data: {
       labels,
       datasets: [{
-        label: 'Nouveaux cas',
+        label: t('dashboard.newCasesLabel'),
         data,
         borderColor: '#667eea',
         backgroundColor: 'rgba(102, 126, 234, 0.1)',
@@ -843,7 +781,7 @@ const createMortalityChart = (labels, data) => {
     data: {
       labels,
       datasets: [{
-        label: 'Taux de mortalité (%)',
+        label: t('dashboard.mortalityRateLabel'),
         data,
         backgroundColor: 'rgba(239, 68, 68, 0.8)',
         borderColor: '#ef4444',

@@ -1,13 +1,13 @@
 <template>
   <div class="etl-manager">
-    <h1>Gestionnaire ETL</h1>
+    <h1>{{ t('etl.title') }}</h1>
     <div class="etl-flex">
       <div class="etl-col">
-        <h2>Upload CSV</h2>
+        <h2>{{ t('etl.uploadCsv') }}</h2>
         <CSVUploader @upload-success="handleUploadSuccess" @upload-error="handleUploadError" />
       </div>
       <div class="etl-col">
-        <h2>Télécharger depuis une URL</h2>
+        <h2>{{ t('etl.downloadUrl') }}</h2>
         <URLDownloader @download-success="handleDownloadSuccess" @download-error="handleDownloadError" />
       </div>
     </div>
@@ -18,6 +18,8 @@
 import { ref, onMounted } from 'vue'
 import CSVUploader from './CSVUploader.vue'
 import URLDownloader from './URLDownloader.vue'
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 
 const jobs = ref([])
 const loadingJobs = ref(false)

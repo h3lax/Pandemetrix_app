@@ -24,7 +24,7 @@
     "success": "Fichier uploadé avec succès",
     "error": "Erreur d'upload",
     "invalidFile": "Veuillez sélectionner un fichier CSV",
-    "fileTooBig": "Le fichier est trop volumineux (max 40MB)",
+    "fileTooBig": "Le fichier est trop volumineux (max 60MB)",
     "titleRequired": "Le titre est requis avant l'upload",
     "datasetTitle": "Titre du jeu de données",
     "enterTitle": "Veuillez saisir un titre descriptif pour votre jeu de données",
@@ -39,7 +39,10 @@
     "downloading": "Téléchargement...",
     "downloadSuccess": "Fichier téléchargé avec succès !",
     "downloadError": "Erreur",
-    "choose": "Au choix"
+    "choose": "Au choix",
+    "manager": "Gestionnaire ETL",
+    "uploadSection": "Upload CSV",
+    "downloadSection": "Télécharger depuis une URL"
   },
   "dashboard": {
     "title": "PANDEMETRIX ANALYTICS",
@@ -81,10 +84,7 @@
     "createAndTrain": "Créer données & entraîner",
     "initializing": "Initialisation...",
     "country": "Pays",
-    "selectCountry": "Sélectionner un pays",
     "predictionDate": "Date de prédiction",
-    "validRange": "Plage valide",
-    "dateMustBeBetween": "Date doit être entre",
     "currentNewCases": "Nouveaux cas actuels",
     "totalVaccinated": "Personnes vaccinées (total)",
     "newTests": "Nouveaux tests",
@@ -109,7 +109,35 @@
     "predictedTrend": "Tendance prédictive",
     "version": "Version",
     "date": "Date",
-    "high": "High"
+    "high": "Haute",
+    "modelSuccessInit": "Modèle ML initialisé avec succès",
+    "modelInitError": "Erreur lors de l'initialisation du modèle",
+    "predictionSuccess": "Prédiction réalisée",
+    "predictionError": "Erreur lors de la prédiction",
+    "deathsPredicted": "décès prédits",
+    "trendChart": "Graphique de prédiction COVID-19",
+    "trendDescription": "Graphique montrant l'évolution prédite des décès COVID-19 sur une semaine pour",
+    "countries": "Pays",
+    "features": "features",
+    "selectCountry": "Sélectionner un pays",
+    "validRange": "Plage valide",
+    "to": "à",
+    "exampleCases": "ex: 1500",
+    "exampleVaccinated": "ex: 50000000", 
+    "exampleTests": "ex: 100000",
+    "exampleHospital": "ex: 2500",
+    "dateMustBeBetween": "Date doit être entre {min} et {max}",
+    "model": "Modèle",
+    "today": "Auj.",
+    "day1": "J+1",
+    "day2": "J+2", 
+    "day3": "J+3",
+    "day4": "J+4",
+    "day5": "J+5",
+    "day6": "J+6",
+    "deathsCount": "Nombre de décès",
+    "dailyPredictedDeaths": "Décès prédits par jour",
+    "predictions7Days": "Prédictions 7 jours"
   },
   "status": {
     "title": "Statut du système",
@@ -161,7 +189,14 @@
     "confirm": "Confirmer",
     "success": "Succès",
     "warning": "Attention",
-    "info": "Information"
+    "info": "Information",
+    "yes": "Oui",
+    "no": "Non",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "finish": "Terminer",
+    "submit": "Soumettre"
   },
   "language": {
     "switch": "Changer de langue",
@@ -171,5 +206,24 @@
     "copyright": "2025 Pandemetrix - Modèle prédictif de pandémies",
     "about": "À propos",
     "contact": "Contact"
+  },
+  "errors": {
+    "networkError": "Erreur de réseau",
+    "serverError": "Erreur serveur",
+    "notFound": "Page non trouvée",
+    "unauthorized": "Non autorisé",
+    "forbidden": "Accès interdit",
+    "validationError": "Erreur de validation",
+    "uploadFailed": "Échec de l'upload",
+    "downloadFailed": "Échec du téléchargement"
+  },
+  "accessibility": {
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu",
+    "loading": "Chargement",
+    "error": "Erreur",
+    "success": "Succès",
+    "required": "Champ requis",
+    "optional": "Champ optionnel"
   }
 }

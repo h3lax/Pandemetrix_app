@@ -1,23 +1,23 @@
 <template>
   <div class="ia-analysis-page">
-    <h1>Analyse IA / Modèles de Prédictions</h1>
+    <h1>{{ t('analysis.title') }}</h1>
 
     <!-- Section 1 : Lancer des prédictions -->
     <section class="card">
-      <h2>Lancer des prédictions COVID-19</h2>
+      <h2>{{ t('analysis.runPredictions') }}</h2>
 
       <!-- État du modèle ML -->
       <div v-if="mlHealth" class="ml-status"
         :class="mlHealth.ready_for_predictions ? 'status-ready' : 'status-not-ready'">
-        <span>{{ mlHealth.ready_for_predictions ? '✅ Modèle prêt' : '⚠️ Modèle non disponible' }}</span>
-        <span class="ml-version">Version: {{ mlHealth.model_version }}</span>
+        <span>{{ mlHealth.ready_for_predictions ? `✅ ${t('analysis.modelReady')}` : `⚠️ ${t('analysis.modelNotAvailable')}` }}</span>
+        <span class="ml-version">{{ t('analysis.version') }}: {{ mlHealth.model_version }}</span>
       </div>
 
       <form @submit.prevent="runPrediction" v-if="mlHealth?.ready_for_predictions">
         <div class="form-row">
-          <label for="country-select">Pays :</label>
+          <label for="country-select">{{ t('analysis.country') }} :</label>
           <select id="country-select" v-model="selectedCountry" required>
-            <option disabled value="">Sélectionner un pays</option>
+            <option disabled value="">{{ t('analysis.selectCountry') }}</option>
             <option v-for="country in supportedCountries" :key="country" :value="country">
               {{ country }}
             </option>
@@ -25,138 +25,138 @@
         </div>
 
         <div class="form-row">
-          <label for="prediction-date">Date de prédiction :</label>
+          <label for="prediction-date">{{ t('analysis.predictionDate') }} :</label>
           <input id="prediction-date" type="date" v-model="predictionDate" required :min="minDate" :max="maxDate"
             @input="validateDate" />
           <div v-if="dateError" class="error-message" role="alert">
             {{ dateError }}
           </div>
           <div class="help-text">
-            📅 Plage valide : {{ minDate }} à {{ maxDate }}
+            📅 {{ t('analysis.validRange') }} : {{ minDate }} {{ t('analysis.to') }} {{ maxDate }}
           </div>
         </div>
 
         <div class="form-row">
-          <label for="new-cases">Nouveaux cas actuels :</label>
+          <label for="new-cases">{{ t('analysis.currentNewCases') }} :</label>
           <input id="new-cases" type="number" v-model.number="inputData.new_cases" min="0" required
-            placeholder="ex: 1500" />
+            :placeholder="t('analysis.exampleCases')" />
         </div>
 
         <div class="form-row">
-          <label for="people-vaccinated">Personnes vaccinées (total) :</label>
+          <label for="people-vaccinated">{{ t('analysis.totalVaccinated') }} :</label>
           <input id="people-vaccinated" type="number" v-model.number="inputData.people_vaccinated" min="0" required
-            placeholder="ex: 50000000" />
+            :placeholder="t('analysis.exampleVaccinated')" />
         </div>
 
         <div class="form-row">
-          <label for="new-tests">Nouveaux tests :</label>
+          <label for="new-tests">{{ t('analysis.newTests') }} :</label>
           <input id="new-tests" type="number" v-model.number="inputData.new_tests" min="0" required
-            placeholder="ex: 100000" />
+            :placeholder="t('analysis.exampleTests')" />
         </div>
 
         <div class="form-row">
-          <label for="hospital-occupancy">Occupation hospitalière :</label>
+          <label for="hospital-occupancy">{{ t('analysis.hospitalOccupancy') }} :</label>
           <input id="hospital-occupancy" type="number" v-model.number="inputData.daily_occupancy_hosp" min="0" required
-            placeholder="ex: 2500" />
+            :placeholder="t('analysis.exampleHospital')" />
         </div>
 
         <button type="submit" :disabled="loadingPrediction || !canPredict">
           <span v-if="loadingPrediction" class="spinner" aria-hidden="true"></span>
-          {{ loadingPrediction ? "Prédiction en cours..." : "Lancer la prédiction" }}
+          {{ loadingPrediction ? t('analysis.predicting') : t('analysis.runPrediction') }}
         </button>
       </form>
 
       <!-- Message si modèle non disponible -->
       <div v-else class="model-unavailable">
-        <p>Le modèle ML n'est pas disponible.</p>
+        <p>{{ t('analysis.modelUnavailable') }}</p>
         <button @click="initializeML" :disabled="initializing">
-          {{ initializing ? 'Initialisation...' : 'Créer données & entraîner' }}
+          {{ initializing ? t('analysis.initializing') : t('analysis.createAndTrain') }}
         </button>
       </div>
 
       <!-- Résultat de prédiction -->
       <div v-if="predictionResult" class="prediction-result">
-        <h3>Résultat de la prédiction</h3>
+        <h3>{{ t('analysis.predictionResult') }}</h3>
         <div class="prediction-main">
           <div class="prediction-value">
-            <span class="label">Décès prédits :</span>
+            <span class="label">{{ t('analysis.predictedDeaths') }} :</span>
             <span class="value">{{ predictionResult.prediction.new_deaths_rounded }}</span>
             <span class="value-precise">({{ predictionResult.prediction.new_deaths_predicted }})</span>
           </div>
           <div class="prediction-confidence">
-            <span class="label">Confiance :</span>
+            <span class="label">{{ t('analysis.confidence') }} :</span>
             <span>{{ predictionResult.prediction.confidence }}</span>
           </div>
         </div>
 
         <div v-if="predictionResult && predictionResult.model_info" class="prediction-meta">
-          <span>Modèle : {{ predictionResult.model_info.version }}</span>
-          <span>R² : {{ predictionResult.model_info.r2_score }}</span>
-          <span>MAE : {{ predictionResult.model_info.mae }}</span>
-          <span>Date : {{ formatDate(predictionResult.timestamp) }}</span>
+          <span>{{ t('analysis.model') }} : {{ predictionResult.model_info.version }}</span>
+          <span>{{ t('analysis.r2Score') }} : {{ predictionResult.model_info.r2_score }}</span>
+          <span>{{ t('analysis.mae') }} : {{ predictionResult.model_info.mae }}</span>
+          <span>{{ t('analysis.date') }} : {{ formatDate(predictionResult.timestamp) }}</span>
         </div>
 
         <!-- Données d'entrée utilisées -->
         <details class="input-summary">
-          <summary>Données d'entrée utilisées</summary>
+          <summary>{{ t('analysis.inputDataUsed') }}</summary>
           <div class="input-data">
-            <div>Pays : {{ predictionResult.prediction.country }}</div>
-            <div>Date : {{ predictionResult.prediction.date }}</div>
-            <div>Nouveaux cas : {{ predictionResult.input_data.new_cases.toLocaleString() }}</div>
-            <div>Personnes vaccinées : {{ predictionResult.input_data.people_vaccinated.toLocaleString() }}</div>
-            <div>Nouveaux tests : {{ predictionResult.input_data.new_tests.toLocaleString() }}</div>
-            <div>Occupation hospitalière : {{ predictionResult.input_data.daily_occupancy_hosp.toLocaleString() }}</div>
+            <div>{{ t('analysis.country') }} : {{ predictionResult.prediction.country }}</div>
+            <div>{{ t('analysis.date') }} : {{ predictionResult.prediction.date }}</div>
+            <div>{{ t('analysis.currentNewCases') }} : {{ predictionResult.input_data.new_cases.toLocaleString() }}</div>
+            <div>{{ t('analysis.totalVaccinated') }} : {{ predictionResult.input_data.people_vaccinated.toLocaleString() }}</div>
+            <div>{{ t('analysis.newTests') }} : {{ predictionResult.input_data.new_tests.toLocaleString() }}</div>
+            <div>{{ t('analysis.hospitalOccupancy') }} : {{ predictionResult.input_data.daily_occupancy_hosp.toLocaleString() }}</div>
           </div>
         </details>
       </div>
 
       <!-- Graphique de prédiction -->
       <div v-if="showChart" class="chart-container" style="margin-top:2em;">
-        <h4>Tendance prédictive</h4>
-        <canvas ref="chartCanvas" aria-label="Graphique de prédiction COVID-19" role="img"></canvas>
+        <h4>{{ t('analysis.predictiveTrendTitle') }}</h4>
+        <canvas ref="chartCanvas" :aria-label="t('analysis.trendChart')" role="img"></canvas>
         <div id="chart-description" class="sr-only">
-          Graphique montrant l'évolution prédite des décès COVID-19 sur une semaine pour {{ selectedCountry }}
+          {{ t('analysis.trendDescription') }} {{ selectedCountry }}
         </div>
       </div>
     </section>
 
     <!-- Section 2 : Informations du modèle -->
     <section class="card" v-if="modelInfo">
-      <h2>Informations du modèle IA</h2>
+      <h2>{{ t('analysis.modelInfo') }}</h2>
       <div class="model-info-grid">
         <div class="info-item">
-          <span class="label">Algorithme :</span>
+          <span class="label">{{ t('analysis.algorithm') }} :</span>
           <span>{{ modelInfo.algorithm }}</span>
         </div>
         <div class="info-item">
-          <span class="label">Date d'entraînement :</span>
+          <span class="label">{{ t('analysis.trainingDate') }} :</span>
           <span>{{ formatDate(modelInfo.training_date) }}</span>
         </div>
         <div class="info-item">
-          <span class="label">Pays supportés :</span>
+          <span class="label">{{ t('analysis.supportedCountries') }} :</span>
           <span>{{ modelInfo.countries_count }}</span>
         </div>
         <div class="info-item">
-          <span class="label">Features utilisées :</span>
+          <span class="label">{{ t('analysis.featuresUsed') }} :</span>
           <span>{{ (modelInfo.features_used && Array.isArray(modelInfo.features_used)) ?
-            modelInfo.features_used.join(',') : 'Non disponible' }}</span>
+            modelInfo.features_used.join(',') : t('analysis.notAvailable') }}</span>
         </div>
       </div>
 
       <!-- Performance du modèle -->
       <div class="model-performance">
-        <h4>Performance du modèle</h4>
+        <h4>{{ t('analysis.modelPerformance') }}</h4>
         <div class="performance-metrics">
           <div class="metric">
-            <span class="metric-label">R² Score :</span>
+            <span class="metric-label">{{ t('analysis.r2Score') }} :</span>
             <span class="metric-value">{{ modelInfo.performance?.test_r2?.toFixed(3) || 'N/A' }}</span>
           </div>
           <div class="metric">
-            <span class="metric-label">MAE :</span>
+            <span class="metric-label">{{ t('analysis.mae') }} :</span>
             <span class="metric-value">{{ modelInfo.performance?.test_mae?.toFixed(2) || 'N/A' }}</span>
           </div>
           <div class="metric">
-            <span class="metric-label">Amélioration vs baseline :</span>
+            <span class="metric-label">{{ t('analysis.improvementVsBaseline') }} :</span>
             <span class="metric-value">+{{ modelInfo.performance?.improvement_r2_percent?.toFixed(1) || 'N/A' }}%</span>
           </div>
         </div>
@@ -167,8 +167,11 @@
 
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import MLService from '@/services/mlService'
 import Chart from 'chart.js/auto'
+
+const { t } = useI18n()
 
 // État réactif
 const mlHealth = ref(null)
@@ -188,7 +191,7 @@ const dateError = ref('')
 const validateDate = () => {
   const date = predictionDate.value
   if (date < minDate.value || date > maxDate.value) {
-    dateError.value = `Date doit être entre ${minDate.value} et ${maxDate.value}`
+    dateError.value = t('analysis.dateMustBeBetween', { min: minDate.value, max: maxDate.value })
   } else {
     dateError.value = ''
   }
@@ -224,7 +227,6 @@ const minDate = computed(() => {
   return '2020-12-02'
 })
 
-
 const maxDate = computed(() => {
   return '2022-06-22'
 })
@@ -233,14 +235,12 @@ const maxDate = computed(() => {
 const initializeML = async () => {
   initializing.value = true
   try {
-    // Entraîner avec les données chargées
-    console.log('Entraînement du modèle...')
     await MLService.trainModel()
     await loadMLComponents()
-    announceToScreenReader('Modèle ML initialisé avec succès')
+    announceToScreenReader(t('analysis.modelSuccessInit'))
   } catch (error) {
     console.error('Erreur initialisation ML:', error)
-    announceToScreenReader('Erreur lors de l\'initialisation du modèle')
+    announceToScreenReader(t('analysis.modelInitError'))
   } finally {
     initializing.value = false
   }
@@ -305,7 +305,7 @@ const runPrediction = async () => {
       prediction: {
         new_deaths_rounded: Math.round(firstResult.new_deaths_predicted),
         new_deaths_predicted: firstResult.new_deaths_predicted,
-        confidence: "High",
+        confidence: t('analysis.high'),
         country: firstResult.country,
         date: firstResult.date
       },
@@ -323,11 +323,11 @@ const runPrediction = async () => {
     await nextTick()
     renderPredictionChart()
 
-    announceToScreenReader(`Prédiction réalisée: ${firstResult.new_deaths_predicted} décès prédits`)
+    announceToScreenReader(`${t('analysis.predictionSuccess')}: ${firstResult.new_deaths_predicted} ${t('analysis.deathsPredicted')}`)
   } catch (error) {
     console.error('Erreur prédiction:', error)
-    announceToScreenReader('Erreur lors de la prédiction')
-    alert('Erreur prédiction: ' + error.message)
+    announceToScreenReader(t('analysis.predictionError'))
+    alert(`${t('analysis.predictionError')}: ${error.message}`)
   } finally {
     loadingPrediction.value = false
   }
@@ -337,7 +337,15 @@ const renderPredictionChart = () => {
   if (chartInstance) chartInstance.destroy()
 
   // Utiliser les vraies prédictions au lieu de données simulées
-  const days = ['Auj.', 'J+1', 'J+2', 'J+3', 'J+4', 'J+5', 'J+6']
+  const days = [
+    t('analysis.today'), 
+    t('analysis.day1'), 
+    t('analysis.day2'), 
+    t('analysis.day3'), 
+    t('analysis.day4'), 
+    t('analysis.day5'), 
+    t('analysis.day6')
+  ]
   const trendData = predictionResult.value.weekResults?.map(r => r.new_deaths_predicted) ||
     [predictionResult.value.prediction.new_deaths_predicted] // fallback
 
@@ -346,7 +354,7 @@ const renderPredictionChart = () => {
     data: {
       labels: days,
       datasets: [{
-        label: 'Décès prédits',
+        label: t('analysis.predictedDeaths'),
         data: trendData,
         borderColor: '#dc2626',
         backgroundColor: 'rgba(220, 38, 38, 0.1)',
@@ -358,10 +366,19 @@ const renderPredictionChart = () => {
     options: {
       responsive: true,
       plugins: {
-        title: { display: true, text: `Tendance prédictive - ${selectedCountry.value}` }
+        title: { 
+          display: true, 
+          text: `${t('analysis.predictiveTrendTitle')} - ${selectedCountry.value}` 
+        }
       },
       scales: {
-        y: { beginAtZero: true, title: { display: true, text: 'Nombre de décès' } }
+        y: { 
+          beginAtZero: true, 
+          title: { 
+            display: true, 
+            text: t('analysis.deathsCount') 
+          } 
+        }
       }
     }
   })
@@ -378,7 +395,7 @@ const renderBatchChart = (results) => {
     data: {
       labels,
       datasets: [{
-        label: 'Décès prédits par jour',
+        label: t('analysis.dailyPredictedDeaths'),
         data,
         backgroundColor: 'rgba(220, 38, 38, 0.8)',
         borderColor: '#dc2626',
@@ -388,10 +405,19 @@ const renderBatchChart = (results) => {
     options: {
       responsive: true,
       plugins: {
-        title: { display: true, text: `Prédictions 7 jours - ${selectedCountry.value}` }
+        title: { 
+          display: true, 
+          text: `${t('analysis.predictions7Days')} - ${selectedCountry.value}` 
+        }
       },
       scales: {
-        y: { beginAtZero: true, title: { display: true, text: 'Décès prédits' } }
+        y: { 
+          beginAtZero: true, 
+          title: { 
+            display: true, 
+            text: t('analysis.predictedDeaths') 
+          } 
+        }
       }
     }
   })
