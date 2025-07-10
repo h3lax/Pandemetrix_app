@@ -65,7 +65,6 @@ jobs:
           kill $(cat .app_pid) || true
           rm .app_pid
         fi
-        # Kill any remaining node processes
         pkill -f "vite" || true
     
     - name: Upload coverage
