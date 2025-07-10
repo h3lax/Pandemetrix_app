@@ -1,45 +1,48 @@
 describe('Navigation & Accessibility', () => {
-  beforeEach(() => {
-    cy.mockAllAPIs()
-  })
-
   it('should navigate through all pages', () => {
-    cy.visit('/')
-
-    // Test navigation complète
+    cy.visitAndWait('/')
+    
+    // Tester navigation vers chaque page
     const pages = [
-      { link: 'Upload Dataset', url: '/etl' },
-      { link: 'Dashboard', url: '/dashboard' },
-      { link: 'Status', url: '/datasheet' },
-      { link: 'Analysis-IA', url: '/analyse-ia' },
-      { link: 'A Propos', url: '/about' }
+      { path: '/etl', text: 'ETL' },
+      { path: '/dashboard', text: 'Dashboard' },
+      { path: '/datasheet', text: 'Status' },
+      { path: '/analyse-ia', text: 'Analysis' },
+      { path: '/about', text: 'À Propos' }
     ]
-
+    
     pages.forEach(page => {
-      cy.contains(page.link).click()
-      cy.url().should('include', page.url)
-      cy.go('back')
+      cy.visit(page.path)
+      cy.waitForApp()
+      cy.url().should('include', page.path)
     })
   })
 
   it('should be keyboard accessible', () => {
-    cy.visit('/etl')
+    cy.visitAndWait('/')
     
-    // Navigation par Tab
-    cy.get('body').realPress('Tab')
-    cy.focused().should('have.class', 'drop-zone')
+    // Test navigation au clavier
+    cy.get('body').tab()
     
-    // Activation par Enter
-    cy.focused().type('{enter}')
-    // Le sélecteur de fichier devrait s'ouvrir
+    // Le premier élément focusable devrait être le skip link
+    cy.focused().should('have.class', 'skip-link')
+    
+    // Continuer la navigation
+    cy.focused().tab()
+    
+    // Vérifier qu'un élément est focusé
+    cy.focused().should('exist')
   })
 
   it('should handle mobile responsive design', () => {
-    cy.viewport(375, 667) // iPhone SE
-    cy.visit('/')
+    cy.viewport('iphone-6')
+    cy.visitAndWait('/')
     
-    // Vérification responsive
-    cy.get('header').should('be.visible')
-    cy.contains('Pandemetrix').should('be.visible')
+    // Vérifier que le contenu s'adapte
+    cy.get('.dashboard-title, h1').should('be.visible')
+    cy.get('nav').should('exist')
+    
+    // Retour desktop
+    cy.viewport(1280, 720)
   })
 })

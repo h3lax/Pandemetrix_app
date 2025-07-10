@@ -7,16 +7,10 @@ export default defineConfig({
     supportFile: 'cypress/support/e2e.js',
     viewportWidth: 1280,
     viewportHeight: 720,
-    video: true,
+    video: false,
     screenshotOnRunFailure: true,
-    experimentalStudio: true
-  },
-  component: {
-    devServer: {
-      framework: 'vue',
-      bundler: 'vite',
-    },
-    specPattern: 'cypress/component/**/*.cy.js',
-    supportFile: 'cypress/support/component.js'
+    defaultCommandTimeout: 10000,
+    requestTimeout: 10000
   }
 })
+

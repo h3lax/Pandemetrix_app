@@ -1,183 +1,183 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="jest tests" tests="69" failures="0" errors="0" time="61.558">
-  <testsuite name="DashboardService" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:02:11" time="27.45" tests="3">
-    <testcase classname="DashboardService getCovidDataByPeriod fetches data correctly" name="DashboardService getCovidDataByPeriod fetches data correctly" time="0.026">
+<testsuites name="jest tests" tests="69" failures="0" errors="0" time="24.926">
+  <testsuite name="dataServices" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:53:12" time="13.759" tests="8">
+    <testcase classname="dataServices fetchData fetches data successfully" name="dataServices fetchData fetches data successfully" time="0.045">
     </testcase>
-    <testcase classname="DashboardService calculateKPIs processes data correctly" name="DashboardService calculateKPIs processes data correctly" time="0.003">
+    <testcase classname="dataServices fetchData handles fetch error" name="dataServices fetchData handles fetch error" time="0.064">
     </testcase>
-    <testcase classname="DashboardService prepareChartData formats data for charts" name="DashboardService prepareChartData formats data for charts" time="0.003">
+    <testcase classname="dataServices checkAppStatus returns status when API is available" name="dataServices checkAppStatus returns status when API is available" time="0.003">
     </testcase>
-  </testsuite>
-  <testsuite name="dataServices" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:02:11" time="27.587" tests="8">
-    <testcase classname="dataServices fetchData fetches data successfully" name="dataServices fetchData fetches data successfully" time="0.03">
+    <testcase classname="dataServices checkAppStatus throws error when API unavailable" name="dataServices checkAppStatus throws error when API unavailable" time="0.003">
     </testcase>
-    <testcase classname="dataServices fetchData handles fetch error" name="dataServices fetchData handles fetch error" time="0.072">
+    <testcase classname="dataServices checkDbStatus returns database status" name="dataServices checkDbStatus returns database status" time="0.002">
     </testcase>
-    <testcase classname="dataServices checkAppStatus returns status when API is available" name="dataServices checkAppStatus returns status when API is available" time="0.002">
+    <testcase classname="dataServices checkDbStatus throws error when DB unavailable" name="dataServices checkDbStatus throws error when DB unavailable" time="0.006">
     </testcase>
-    <testcase classname="dataServices checkAppStatus throws error when API unavailable" name="dataServices checkAppStatus throws error when API unavailable" time="0.002">
+    <testcase classname="dataServices fetchFilteredData fetches filtered data with parameters" name="dataServices fetchFilteredData fetches filtered data with parameters" time="0.005">
     </testcase>
-    <testcase classname="dataServices checkDbStatus returns database status" name="dataServices checkDbStatus returns database status" time="0.001">
-    </testcase>
-    <testcase classname="dataServices checkDbStatus throws error when DB unavailable" name="dataServices checkDbStatus throws error when DB unavailable" time="0.002">
-    </testcase>
-    <testcase classname="dataServices fetchFilteredData fetches filtered data with parameters" name="dataServices fetchFilteredData fetches filtered data with parameters" time="0.003">
-    </testcase>
-    <testcase classname="dataServices fetchFilteredData handles empty parameters" name="dataServices fetchFilteredData handles empty parameters" time="0.002">
+    <testcase classname="dataServices fetchFilteredData handles empty parameters" name="dataServices fetchFilteredData handles empty parameters" time="0.003">
     </testcase>
   </testsuite>
-  <testsuite name="etlService.js" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:02:11" time="27.64" tests="3">
-    <testcase classname="etlService.js uploadCSV works with mock" name="etlService.js uploadCSV works with mock" time="0.037">
+  <testsuite name="etlService.js" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:53:12" time="14.538" tests="3">
+    <testcase classname="etlService.js uploadCSV works with mock" name="etlService.js uploadCSV works with mock" time="0.102">
     </testcase>
-    <testcase classname="etlService.js downloadFromUrl works with mock" name="etlService.js downloadFromUrl works with mock" time="0.007">
+    <testcase classname="etlService.js downloadFromUrl works with mock" name="etlService.js downloadFromUrl works with mock" time="0.002">
     </testcase>
     <testcase classname="etlService.js getCollections returns mock data" name="etlService.js getCollections returns mock data" time="0.002">
     </testcase>
   </testsuite>
-  <testsuite name="LoadingState.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:02:11" time="27.649" tests="4">
-    <testcase classname="LoadingState.vue renders with default props" name="LoadingState.vue renders with default props" time="0.108">
+  <testsuite name="Status.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:53:12" time="14.523" tests="3">
+    <testcase classname="Status.vue renders page title" name="Status.vue renders page title" time="0.403">
     </testcase>
-    <testcase classname="LoadingState.vue renders with custom message" name="LoadingState.vue renders with custom message" time="0.011">
+    <testcase classname="Status.vue shows initial loading state" name="Status.vue shows initial loading state" time="0.058">
     </testcase>
-    <testcase classname="LoadingState.vue has correct aria attributes" name="LoadingState.vue has correct aria attributes" time="0.017">
-    </testcase>
-    <testcase classname="LoadingState.vue renders announce text for screen readers" name="LoadingState.vue renders announce text for screen readers" time="0.02">
+    <testcase classname="Status.vue displays sections" name="Status.vue displays sections" time="0.023">
     </testcase>
   </testsuite>
-  <testsuite name="ErrorState.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:02:11" time="27.671" tests="4">
-    <testcase classname="ErrorState.vue renders with default props" name="ErrorState.vue renders with default props" time="0.08">
+  <testsuite name="HeaderWhite.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:53:12" time="14.813" tests="4">
+    <testcase classname="HeaderWhite.vue renders navigation links" name="HeaderWhite.vue renders navigation links" time="0.312">
     </testcase>
-    <testcase classname="ErrorState.vue renders with custom title" name="ErrorState.vue renders with custom title" time="0.01">
+    <testcase classname="HeaderWhite.vue has correct header structure" name="HeaderWhite.vue has correct header structure" time="0.106">
     </testcase>
-    <testcase classname="ErrorState.vue shows retry button when retryAction provided" name="ErrorState.vue shows retry button when retryAction provided" time="0.051">
+    <testcase classname="HeaderWhite.vue renders brand and navigation" name="HeaderWhite.vue renders brand and navigation" time="0.083">
     </testcase>
-    <testcase classname="ErrorState.vue hides retry button when no retryAction" name="ErrorState.vue hides retry button when no retryAction" time="0.014">
-    </testcase>
-  </testsuite>
-  <testsuite name="HeaderWhite.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:02:11" time="27.694" tests="4">
-    <testcase classname="HeaderWhite.vue renders navigation links" name="HeaderWhite.vue renders navigation links" time="0.115">
-    </testcase>
-    <testcase classname="HeaderWhite.vue has correct header structure" name="HeaderWhite.vue has correct header structure" time="0.031">
-    </testcase>
-    <testcase classname="HeaderWhite.vue renders brand and navigation" name="HeaderWhite.vue renders brand and navigation" time="0.041">
-    </testcase>
-    <testcase classname="HeaderWhite.vue has fixed positioning" name="HeaderWhite.vue has fixed positioning" time="0.019">
+    <testcase classname="HeaderWhite.vue has fixed positioning" name="HeaderWhite.vue has fixed positioning" time="0.078">
     </testcase>
   </testsuite>
-  <testsuite name="HomeItem.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:02:11" time="27.72" tests="3">
-    <testcase classname="HomeItem.vue renders with default props" name="HomeItem.vue renders with default props" time="0.103">
+  <testsuite name="Home.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:53:12" time="15.432" tests="2">
+    <testcase classname="Home.vue renders home items" name="Home.vue renders home items" time="0.194">
     </testcase>
-    <testcase classname="HomeItem.vue renders with custom props" name="HomeItem.vue renders with custom props" time="0.014">
-    </testcase>
-    <testcase classname="HomeItem.vue receives gradient prop" name="HomeItem.vue receives gradient prop" time="0.017">
+    <testcase classname="Home.vue initializes items with correct structure" name="Home.vue initializes items with correct structure" time="0.108">
     </testcase>
   </testsuite>
-  <testsuite name="Home.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:02:11" time="27.83" tests="2">
-    <testcase classname="Home.vue renders home items" name="Home.vue renders home items" time="0.111">
+  <testsuite name="HomeItem.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:53:12" time="15.436" tests="3">
+    <testcase classname="HomeItem.vue renders with default props" name="HomeItem.vue renders with default props" time="0.344">
     </testcase>
-    <testcase classname="Home.vue initializes items with correct structure" name="Home.vue initializes items with correct structure" time="0.026">
+    <testcase classname="HomeItem.vue renders with custom props" name="HomeItem.vue renders with custom props" time="0.033">
     </testcase>
-  </testsuite>
-  <testsuite name="Status.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:02:11" time="27.821" tests="3">
-    <testcase classname="Status.vue renders page title" name="Status.vue renders page title" time="0.144">
-    </testcase>
-    <testcase classname="Status.vue shows initial loading state" name="Status.vue shows initial loading state" time="0.016">
-    </testcase>
-    <testcase classname="Status.vue displays sections" name="Status.vue displays sections" time="0.022">
+    <testcase classname="HomeItem.vue receives gradient prop" name="HomeItem.vue receives gradient prop" time="0.051">
     </testcase>
   </testsuite>
-  <testsuite name="URLDownloader.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:02:11" time="27.889" tests="2">
-    <testcase classname="URLDownloader.vue renders download buttons" name="URLDownloader.vue renders download buttons" time="0.085">
+  <testsuite name="URLDownloader.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:53:12" time="15.591" tests="2">
+    <testcase classname="URLDownloader.vue renders download buttons" name="URLDownloader.vue renders download buttons" time="0.099">
     </testcase>
-    <testcase classname="URLDownloader.vue starts download process" name="URLDownloader.vue starts download process" time="0.028">
-    </testcase>
-  </testsuite>
-  <testsuite name="FileUploader.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:02:11" time="27.927" tests="3">
-    <testcase classname="FileUploader.vue renders upload form" name="FileUploader.vue renders upload form" time="0.115">
-    </testcase>
-    <testcase classname="FileUploader.vue validates required fields" name="FileUploader.vue validates required fields" time="0.019">
-    </testcase>
-    <testcase classname="FileUploader.vue handles file selection" name="FileUploader.vue handles file selection" time="0.021">
+    <testcase classname="URLDownloader.vue starts download process" name="URLDownloader.vue starts download process" time="0.084">
     </testcase>
   </testsuite>
-  <testsuite name="TitleModal.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:02:11" time="27.976" tests="5">
-    <testcase classname="TitleModal.vue renders modal with title input" name="TitleModal.vue renders modal with title input" time="0.147">
+  <testsuite name="TitleModal.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:53:12" time="16.117" tests="5">
+    <testcase classname="TitleModal.vue renders modal with title input" name="TitleModal.vue renders modal with title input" time="0.214">
     </testcase>
-    <testcase classname="TitleModal.vue validates title length" name="TitleModal.vue validates title length" time="0.039">
+    <testcase classname="TitleModal.vue validates title length" name="TitleModal.vue validates title length" time="0.142">
     </testcase>
-    <testcase classname="TitleModal.vue emits title-submitted on valid form submission" name="TitleModal.vue emits title-submitted on valid form submission" time="0.025">
+    <testcase classname="TitleModal.vue emits title-submitted on valid form submission" name="TitleModal.vue emits title-submitted on valid form submission" time="0.075">
     </testcase>
-    <testcase classname="TitleModal.vue emits cancel on cancel button" name="TitleModal.vue emits cancel on cancel button" time="0.022">
+    <testcase classname="TitleModal.vue emits cancel on cancel button" name="TitleModal.vue emits cancel on cancel button" time="0.106">
     </testcase>
     <testcase classname="TitleModal.vue shows error for invalid input" name="TitleModal.vue shows error for invalid input" time="0.02">
     </testcase>
   </testsuite>
-  <testsuite name="Header.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:02:11" time="28.003" tests="2">
-    <testcase classname="Header.vue renders default title and subtitle" name="Header.vue renders default title and subtitle" time="0.123">
+  <testsuite name="FileUploader.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:53:12" time="15.44" tests="3">
+    <testcase classname="FileUploader.vue renders upload form" name="FileUploader.vue renders upload form" time="0.295">
     </testcase>
-    <testcase classname="Header.vue renders custom props" name="Header.vue renders custom props" time="0.009">
+    <testcase classname="FileUploader.vue validates required fields" name="FileUploader.vue validates required fields" time="0.069">
     </testcase>
-  </testsuite>
-  <testsuite name="App.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:02:11" time="28.033" tests="2">
-    <testcase classname="App.vue renders header and router-view" name="App.vue renders header and router-view" time="0.128">
-    </testcase>
-    <testcase classname="App.vue initializes items array" name="App.vue initializes items array" time="0.035">
+    <testcase classname="FileUploader.vue handles file selection" name="FileUploader.vue handles file selection" time="0.091">
     </testcase>
   </testsuite>
-  <testsuite name="EtlMain.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:02:11" time="28.105" tests="2">
-    <testcase classname="EtlMain.vue renders main sections" name="EtlMain.vue renders main sections" time="0.089">
+  <testsuite name="ChartTest.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:53:12" time="15.384" tests="2">
+    <testcase classname="ChartTest.vue renders without canvas errors" name="ChartTest.vue renders without canvas errors" time="0.303">
     </testcase>
-    <testcase classname="EtlMain.vue handles events correctly" name="EtlMain.vue handles events correctly" time="0.013">
-    </testcase>
-  </testsuite>
-  <testsuite name="CSVUploader.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:02:11" time="28.195" tests="7">
-    <testcase classname="CSVUploader.vue renders component with drop zone" name="CSVUploader.vue renders component with drop zone" time="0.117">
-    </testcase>
-    <testcase classname="CSVUploader.vue has correct initial state" name="CSVUploader.vue has correct initial state" time="0.013">
-    </testcase>
-    <testcase classname="CSVUploader.vue - Additional Coverage handles drag over and leave events" name="CSVUploader.vue - Additional Coverage handles drag over and leave events" time="0.026">
-    </testcase>
-    <testcase classname="CSVUploader.vue - Additional Coverage validates file type and size" name="CSVUploader.vue - Additional Coverage validates file type and size" time="0.014">
-    </testcase>
-    <testcase classname="CSVUploader.vue - Additional Coverage handles keyboard navigation" name="CSVUploader.vue - Additional Coverage handles keyboard navigation" time="0.025">
-    </testcase>
-    <testcase classname="CSVUploader.vue - Additional Coverage resets upload state correctly" name="CSVUploader.vue - Additional Coverage resets upload state correctly" time="0.01">
-    </testcase>
-    <testcase classname="CSVUploader.vue - Additional Coverage shows correct states" name="CSVUploader.vue - Additional Coverage shows correct states" time="0.015">
+    <testcase classname="ChartTest.vue initializes chart data structure" name="ChartTest.vue initializes chart data structure" time="0.016">
     </testcase>
   </testsuite>
-  <testsuite name="ChartTest.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:02:11" time="28.358" tests="2">
-    <testcase classname="ChartTest.vue renders without canvas errors" name="ChartTest.vue renders without canvas errors" time="0.103">
+  <testsuite name="LoadingState.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:53:12" time="15.978" tests="4">
+    <testcase classname="LoadingState.vue renders with default props" name="LoadingState.vue renders with default props" time="0.356">
     </testcase>
-    <testcase classname="ChartTest.vue initializes chart data structure" name="ChartTest.vue initializes chart data structure" time="0.009">
+    <testcase classname="LoadingState.vue renders with custom message" name="LoadingState.vue renders with custom message" time="0.016">
     </testcase>
-  </testsuite>
-  <testsuite name="api.js" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:02:38" time="0.613" tests="1">
-    <testcase classname="api.js api mock works" name="api.js api mock works" time="0.002">
+    <testcase classname="LoadingState.vue has correct aria attributes" name="LoadingState.vue has correct aria attributes" time="0.022">
     </testcase>
-  </testsuite>
-  <testsuite name="About.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:02:38" time="0.801" tests="2">
-    <testcase classname="About.vue renders about content" name="About.vue renders about content" time="0.028">
-    </testcase>
-    <testcase classname="About.vue has correct styling classes" name="About.vue has correct styling classes" time="0.019">
+    <testcase classname="LoadingState.vue renders announce text for screen readers" name="LoadingState.vue renders announce text for screen readers" time="0.054">
     </testcase>
   </testsuite>
-  <testsuite name="IAAnalysisPage.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:02:11" time="28.593" tests="4">
-    <testcase classname="IAAnalysisPage.vue renders page title" name="IAAnalysisPage.vue renders page title" time="0.183">
+  <testsuite name="App.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:53:12" time="16.016" tests="2">
+    <testcase classname="App.vue renders header and router-view" name="App.vue renders header and router-view" time="0.29">
     </testcase>
-    <testcase classname="IAAnalysisPage.vue loads ML components" name="IAAnalysisPage.vue loads ML components" time="0.12">
-    </testcase>
-    <testcase classname="IAAnalysisPage.vue validates prediction form" name="IAAnalysisPage.vue validates prediction form" time="0.018">
-    </testcase>
-    <testcase classname="IAAnalysisPage.vue validates date range correctly" name="IAAnalysisPage.vue validates date range correctly" time="0.014">
+    <testcase classname="App.vue initializes items array" name="App.vue initializes items array" time="0.104">
     </testcase>
   </testsuite>
-  <testsuite name="Dashboard.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:02:11" time="28.647" tests="3">
-    <testcase classname="Dashboard.vue renders dashboard title" name="Dashboard.vue renders dashboard title" time="0.15">
+  <testsuite name="About.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:53:26" time="2.275" tests="2">
+    <testcase classname="About.vue renders about content" name="About.vue renders about content" time="0.086">
     </testcase>
-    <testcase classname="Dashboard.vue displays KPI structure" name="Dashboard.vue displays KPI structure" time="0.019">
+    <testcase classname="About.vue has correct styling classes" name="About.vue has correct styling classes" time="0.126">
     </testcase>
-    <testcase classname="Dashboard.vue initializes with correct defaults" name="Dashboard.vue initializes with correct defaults" time="0.011">
+  </testsuite>
+  <testsuite name="DashboardService" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:53:12" time="15.818" tests="3">
+    <testcase classname="DashboardService getCovidDataByPeriod fetches data correctly" name="DashboardService getCovidDataByPeriod fetches data correctly" time="0.053">
+    </testcase>
+    <testcase classname="DashboardService calculateKPIs processes data correctly" name="DashboardService calculateKPIs processes data correctly" time="0.109">
+    </testcase>
+    <testcase classname="DashboardService prepareChartData formats data for charts" name="DashboardService prepareChartData formats data for charts" time="0.003">
+    </testcase>
+  </testsuite>
+  <testsuite name="ErrorState.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:53:12" time="16.163" tests="4">
+    <testcase classname="ErrorState.vue renders with default props" name="ErrorState.vue renders with default props" time="0.116">
+    </testcase>
+    <testcase classname="ErrorState.vue renders with custom title" name="ErrorState.vue renders with custom title" time="0.019">
+    </testcase>
+    <testcase classname="ErrorState.vue shows retry button when retryAction provided" name="ErrorState.vue shows retry button when retryAction provided" time="0.09">
+    </testcase>
+    <testcase classname="ErrorState.vue hides retry button when no retryAction" name="ErrorState.vue hides retry button when no retryAction" time="0.024">
+    </testcase>
+  </testsuite>
+  <testsuite name="Header.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:53:12" time="16.12" tests="2">
+    <testcase classname="Header.vue renders default title and subtitle" name="Header.vue renders default title and subtitle" time="0.186">
+    </testcase>
+    <testcase classname="Header.vue renders custom props" name="Header.vue renders custom props" time="0.039">
+    </testcase>
+  </testsuite>
+  <testsuite name="CSVUploader.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:53:12" time="16.196" tests="7">
+    <testcase classname="CSVUploader.vue renders component with drop zone" name="CSVUploader.vue renders component with drop zone" time="0.249">
+    </testcase>
+    <testcase classname="CSVUploader.vue has correct initial state" name="CSVUploader.vue has correct initial state" time="0.023">
+    </testcase>
+    <testcase classname="CSVUploader.vue - Additional Coverage handles drag over and leave events" name="CSVUploader.vue - Additional Coverage handles drag over and leave events" time="0.057">
+    </testcase>
+    <testcase classname="CSVUploader.vue - Additional Coverage validates file type and size" name="CSVUploader.vue - Additional Coverage validates file type and size" time="0.035">
+    </testcase>
+    <testcase classname="CSVUploader.vue - Additional Coverage handles keyboard navigation" name="CSVUploader.vue - Additional Coverage handles keyboard navigation" time="0.037">
+    </testcase>
+    <testcase classname="CSVUploader.vue - Additional Coverage resets upload state correctly" name="CSVUploader.vue - Additional Coverage resets upload state correctly" time="0.028">
+    </testcase>
+    <testcase classname="CSVUploader.vue - Additional Coverage shows correct states" name="CSVUploader.vue - Additional Coverage shows correct states" time="0.034">
+    </testcase>
+  </testsuite>
+  <testsuite name="api.js" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:53:27" time="1.904" tests="1">
+    <testcase classname="api.js api mock works" name="api.js api mock works" time="0.003">
+    </testcase>
+  </testsuite>
+  <testsuite name="EtlMain.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:53:12" time="16.211" tests="2">
+    <testcase classname="EtlMain.vue renders main sections" name="EtlMain.vue renders main sections" time="0.142">
+    </testcase>
+    <testcase classname="EtlMain.vue handles events correctly" name="EtlMain.vue handles events correctly" time="0.028">
+    </testcase>
+  </testsuite>
+  <testsuite name="IAAnalysisPage.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:53:12" time="17.017" tests="4">
+    <testcase classname="IAAnalysisPage.vue renders page title" name="IAAnalysisPage.vue renders page title" time="0.234">
+    </testcase>
+    <testcase classname="IAAnalysisPage.vue loads ML components" name="IAAnalysisPage.vue loads ML components" time="0.141">
+    </testcase>
+    <testcase classname="IAAnalysisPage.vue validates prediction form" name="IAAnalysisPage.vue validates prediction form" time="0.036">
+    </testcase>
+    <testcase classname="IAAnalysisPage.vue validates date range correctly" name="IAAnalysisPage.vue validates date range correctly" time="0.036">
+    </testcase>
+  </testsuite>
+  <testsuite name="Dashboard.vue" errors="0" failures="0" skipped="0" timestamp="2025-07-10T14:53:12" time="17.009" tests="3">
+    <testcase classname="Dashboard.vue renders dashboard title" name="Dashboard.vue renders dashboard title" time="0.242">
+    </testcase>
+    <testcase classname="Dashboard.vue displays KPI structure" name="Dashboard.vue displays KPI structure" time="0.058">
+    </testcase>
+    <testcase classname="Dashboard.vue initializes with correct defaults" name="Dashboard.vue initializes with correct defaults" time="0.026">
     </testcase>
   </testsuite>
 </testsuites>

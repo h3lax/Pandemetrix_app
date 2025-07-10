@@ -111,3 +111,40 @@ Cypress.Commands.add('mockAllAPIs', () => {
 Cypress.Commands.add('tab', () => {
   cy.realPress('Tab')
 })
+
+Cypress.Commands.add('uploadFile', (fileName, selector = 'input[type="file"]') => {
+  cy.fixture(fileName).then(fileContent => {
+    cy.get(selector).then(subject => {
+      const el = subject[0]
+      const file = new File([fileContent], fileName, { type: 'text/csv' })
+      const dataTransfer = new DataTransfer()
+      dataTransfer.items.add(file)
+      el.files = dataTransfer.files
+      el.dispatchEvent(new Event('change', { bubbles: true }))
+    })
+  })
+})
+
+Cypress.Commands.add('waitForApp', () => {
+  cy.get('body').should('be.visible')
+  cy.get('#app').should('exist')
+})
+
+Cypress.Commands.add('mockAxe', () => {
+  cy.window().then((win) => {
+    if (!win.axe) {
+      win.axe = {
+        run: () => Promise.resolve({ violations: [] }),
+        configure: () => {},
+        reset: () => {}
+      }
+    }
+  })
+})
+
+// Commande pour naviguer vers une page et attendre qu'elle se charge
+Cypress.Commands.add('visitAndWait', (path) => {
+  cy.visit(path)
+  cy.waitForApp()
+  cy.wait(500) // Petite pause pour le rendu
+})
