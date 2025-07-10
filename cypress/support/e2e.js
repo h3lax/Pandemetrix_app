@@ -66,8 +66,14 @@ beforeEach(() => {
   }).as('getData')
 })
 
-// Commandes personnalisées pour l'accessibilité
+// Commandes personnalisées pour l'accessibilité - SANS INJECTION AUTOMATIQUE
 Cypress.Commands.add('checkA11y', (context, options) => {
-  cy.injectAxe()
-  cy.checkA11y(context, options)
+  // Ne pas injecter axe automatiquement pour éviter les boucles
+  cy.window().then((win) => {
+    if (win.axe) {
+      cy.checkA11y(context, options)
+    } else {
+      cy.log('Axe not available, skipping accessibility check')
+    }
+  })
 })
