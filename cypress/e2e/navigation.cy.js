@@ -1,4 +1,8 @@
 describe('Navigation & Accessibility', () => {
+  beforeEach(() => {
+    cy.mockAllAPIs()
+  })
+
   it('should navigate through all pages', () => {
     cy.visit('/')
 
@@ -22,7 +26,7 @@ describe('Navigation & Accessibility', () => {
     cy.visit('/etl')
     
     // Navigation par Tab
-    cy.get('body').tab()
+    cy.get('body').realPress('Tab')
     cy.focused().should('have.class', 'drop-zone')
     
     // Activation par Enter

@@ -26,7 +26,9 @@ jobs:
         cache: 'npm'
     
     - name: Install dependencies
-      run: npm ci
+      run: |
+        npm ci
+        npm install --save-dev cypress-axe cypress-real-events
     
     - name: Run unit tests
       run: npm run test:ci

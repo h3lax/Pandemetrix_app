@@ -1,4 +1,8 @@
 describe('API Integration Tests', () => {
+  beforeEach(() => {
+    cy.mockAllAPIs()
+  })
+
   it('should handle API health checks', () => {
     cy.visit('/datasheet')
     

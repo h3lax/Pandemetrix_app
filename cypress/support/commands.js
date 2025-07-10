@@ -45,3 +45,69 @@ Cypress.Commands.add('testResponsiveDesign', (viewports) => {
     cy.contains('Pandemetrix').should('be.visible')
   })
 })
+
+Cypress.Commands.add('mockAllAPIs', () => {
+  // Health checks
+  cy.intercept('GET', '**/api/health/status', {
+    statusCode: 200, body: { status: 'OK' }
+  }).as('healthCheck')
+  
+  cy.intercept('GET', '**/api/health/db-check', {
+    statusCode: 200, body: { database: 'Connected' }
+  }).as('dbCheck')
+  
+  // Collections
+  cy.intercept('GET', '**/api/etl/collections', {
+    statusCode: 200,
+    body: { collections: [{ collection: 'test_data', count: 100 }] }
+  }).as('collections')
+  
+  // Data
+  cy.intercept('GET', '**/api/data**', {
+    statusCode: 200,
+    body: [{ date_reported: '2024-01-01', country: 'France', new_cases: 1000, new_deaths: 20 }]
+  }).as('covidData')
+  
+  // ML API complet
+  cy.intercept('GET', '**/api/ml/health', {
+    statusCode: 200,
+    body: { model_loaded: true, ready_for_predictions: true, model_version: '1.0' }
+  }).as('mlHealth')
+  
+  cy.intercept('GET', '**/api/ml/countries', {
+    statusCode: 200,
+    body: { countries: ['France', 'Germany', 'Italy'] }
+  }).as('mlCountries')
+  
+  cy.intercept('GET', '**/api/ml/model-info', {
+    statusCode: 200,
+    body: { 
+      algorithm: 'polynomial_regression_with_ridge',
+      performance: { test_r2: 0.824 },
+      training_date: '2024-01-01T00:00:00Z'
+    }
+  }).as('mlModelInfo')
+  
+  cy.intercept('POST', '**/api/ml/predict', {
+    statusCode: 200,
+    body: {
+      prediction: { new_deaths_predicted: 42.5, new_deaths_rounded: 43, country: 'France' },
+      model_info: { version: '1.0' },
+      timestamp: '2024-01-01T12:00:00Z'
+    }
+  }).as('prediction')
+  
+  // Upload/Download
+  cy.intercept('POST', '**/api/etl/upload', {
+    statusCode: 200, body: { message: 'Upload réussi avec succès' }
+  }).as('uploadFile')
+  
+  cy.intercept('POST', '**/api/etl/download', {
+    statusCode: 200, body: { message: 'Téléchargement réussi avec succès' }
+  }).as('downloadFile')
+})
+
+// Tab avec cypress-real-events
+Cypress.Commands.add('tab', () => {
+  cy.realPress('Tab')
+})

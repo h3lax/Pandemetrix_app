@@ -1,5 +1,6 @@
 describe('Accessibility Tests', () => {
   beforeEach(() => {
+    cy.mockAllAPIs()
     cy.injectAxe()
   })
 

@@ -1,5 +1,6 @@
 describe('ETL Workflow Complete', () => {
   beforeEach(() => {
+    cy.mockAllAPIs()
     cy.visit('/')
   })
 
@@ -16,6 +17,7 @@ describe('ETL Workflow Complete', () => {
     cy.get('.modal-content').should('be.visible')
     cy.get('input[placeholder*="Données"]').type('Test Dataset E2E')
     cy.contains('Valider').click()
+    cy.wait('@uploadFile')
 
     // Vérification du succès
     cy.contains('succès').should('be.visible')

@@ -1,5 +1,7 @@
 describe('Dashboard Integration', () => {
   beforeEach(() => {
+    cy.mockAllAPIs()
+    
     // Mock de l'API de données avec fetch
     cy.intercept('GET', '**/api/data**', {
       statusCode: 200,

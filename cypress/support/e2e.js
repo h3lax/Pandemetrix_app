@@ -1,6 +1,7 @@
 import './commands'
+import 'cypress-axe'
+import 'cypress-real-events/support'
 
-// Désactiver les exceptions non capturées qui cassent les tests
 Cypress.on('uncaught:exception', (err, runnable) => {
-  return false
+  return false // Ignore toutes les erreurs pour la CI
 })

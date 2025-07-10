@@ -1,5 +1,7 @@
 describe('IA Analysis Page', () => {
   beforeEach(() => {
+    cy.mockAllAPIs()
+    
     // Mock des endpoints ML mis à jour
     cy.intercept('GET', '**/api/ml/health', {
       statusCode: 200,

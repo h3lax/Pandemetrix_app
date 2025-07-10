@@ -1,4 +1,8 @@
 describe('Performance Tests', () => {
+  beforeEach(() => {
+    cy.mockAllAPIs()
+  })
+
   it('loads pages within acceptable time', () => {
     const startTime = Date.now()
     cy.visit('/')
@@ -21,6 +25,7 @@ describe('Performance Tests', () => {
     
     cy.get('.modal-content input').type('Large Dataset')
     cy.contains('Valider').click()
+    cy.wait('@uploadFile')
     cy.contains('Upload en cours...').should('be.visible')
   })
 })

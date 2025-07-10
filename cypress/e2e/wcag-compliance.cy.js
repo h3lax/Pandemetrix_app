@@ -1,5 +1,6 @@
 describe('WCAG 2.1 AA Compliance', () => {
   beforeEach(() => {
+    cy.mockAllAPIs()
     cy.injectAxe()
   })
 
@@ -68,6 +69,7 @@ describe('WCAG 2.1 AA Compliance', () => {
     
     cy.get('#dataset-title').type('Test Dataset')
     cy.contains('Valider').click()
+    cy.wait('@uploadFile')
     
     // Check live region
     cy.get('[aria-live="polite"]').should('contain', 'succès')
