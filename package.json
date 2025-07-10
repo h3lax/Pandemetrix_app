@@ -66,6 +66,7 @@
     "cypress": "^13.6.2",
     "cypress-axe": "^1.6.0",
     "cypress-real-events": "^1.14.0",
+    "cypress-wait-until": "^3.0.1",
     "eslint": "^8.57.1",
     "eslint-plugin-cypress": "^2.15.1",
     "eslint-plugin-vue": "^9.20.1",

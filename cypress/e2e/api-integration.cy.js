@@ -6,7 +6,6 @@ describe('API Integration Tests', () => {
   it('should handle API health checks', () => {
     cy.visit('/datasheet')
     
-    // Mock des endpoints de santé
     cy.intercept('GET', '**/api/health/status', {
       statusCode: 200,
       body: { status: 'OK' }
@@ -34,13 +33,17 @@ describe('API Integration Tests', () => {
   it('should handle ML API proxy correctly', () => {
     cy.visit('/analyse-ia')
     
-    // Test du proxy ML
-    cy.intercept('GET', '**/api/ml/health', {
-      statusCode: 503,
-      body: { error: 'Pandemetrix_ML API non accessible' }
-    }).as('mlDown')
+    // Intercepter avec une réponse qui simule un modèle non prêt
+    cy.intercept('GET', '**/api/v1/covid/health', {
+      statusCode: 200,
+      body: { 
+        model_loaded: false,
+        ready_for_predictions: false,
+        model_version: null 
+      }
+    }).as('mlHealth')
     
-    cy.wait('@mlDown')
-    cy.contains('⚠️ Modèle non disponible').should('be.visible')
+    cy.wait('@mlHealth')
+    cy.contains('Le modèle ML n\'est pas disponible').should('be.visible')
   })
 })
