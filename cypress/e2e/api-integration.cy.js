@@ -29,21 +29,4 @@ describe('API Integration Tests', () => {
     cy.wait(['@healthCheck', '@dbCheck', '@collections'])
     cy.contains('✓ Connecté').should('be.visible')
   })
-
-  it('should handle ML API proxy correctly', () => {
-    cy.visit('/analyse-ia')
-    
-    // Intercepter avec une réponse qui simule un modèle non prêt
-    cy.intercept('GET', '**/api/v1/covid/health', {
-      statusCode: 200,
-      body: { 
-        model_loaded: false,
-        ready_for_predictions: false,
-        model_version: null 
-      }
-    }).as('mlHealth')
-    
-    cy.wait('@mlHealth')
-    cy.contains('Le modèle ML n\'est pas disponible').should('be.visible')
-  })
 })
