@@ -1,16 +1,25 @@
 import { mount } from '@vue/test-utils'
 import TitleModal from '@/components/etl/TitleModal.vue'
+import { createTestI18n } from '../../../helpers/i18n-helper'
 
 describe('TitleModal.vue', () => {
   test('renders modal with title input', () => {
-    const wrapper = mount(TitleModal)
+    const wrapper = mount(TitleModal, {
+      global: {
+        plugins: [createTestI18n()]
+      }
+    })
     expect(wrapper.find('#modal-title').text()).toBe('Titre du jeu de données')
     expect(wrapper.find('#dataset-title').exists()).toBe(true)
     wrapper.unmount()
   })
 
   test('validates title length', async () => {
-    const wrapper = mount(TitleModal)
+    const wrapper = mount(TitleModal, {
+      global: {
+        plugins: [createTestI18n()]
+      }
+    })
     const input = wrapper.find('#dataset-title')
     
     await input.setValue('ab')
@@ -22,7 +31,11 @@ describe('TitleModal.vue', () => {
   })
 
   test('emits title-submitted on valid form submission', async () => {
-    const wrapper = mount(TitleModal)
+    const wrapper = mount(TitleModal, {
+      global: {
+        plugins: [createTestI18n()]
+      }
+    })
     await wrapper.find('#dataset-title').setValue('Test Dataset')
     await wrapper.find('form').trigger('submit')
     
@@ -32,7 +45,11 @@ describe('TitleModal.vue', () => {
   })
 
   test('emits cancel on cancel button', async () => {
-    const wrapper = mount(TitleModal)
+    const wrapper = mount(TitleModal, {
+      global: {
+        plugins: [createTestI18n()]
+      }
+    })
     await wrapper.find('.btn-secondary').trigger('click')
     
     expect(wrapper.emitted('cancel')).toBeTruthy()
@@ -40,7 +57,11 @@ describe('TitleModal.vue', () => {
   })
 
   test('shows error for invalid input', async () => {
-    const wrapper = mount(TitleModal)
+    const wrapper = mount(TitleModal, {
+      global: {
+        plugins: [createTestI18n()]
+      }
+    })
     const form = wrapper.find('form')
     
     await form.trigger('submit')

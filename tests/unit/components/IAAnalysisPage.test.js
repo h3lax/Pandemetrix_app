@@ -93,6 +93,6 @@ describe('IAAnalysisPage.vue', () => {
     // Date invalide (trop ancienne)
     wrapper.vm.predictionDate = '2019-01-01'
     wrapper.vm.validateDate()
-    expect(wrapper.vm.dateError).toContain('Date doit être entre')
+    expect(wrapper.vm.dateError).toContain('analysis.dateMustBeBetween')
   })
 })

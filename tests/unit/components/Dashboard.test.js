@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import Dashboard from '../../../src/components/dashboard/Dashboard.vue'
+import { createTestI18n } from '../../helpers/i18n-helper'
 
 jest.mock('@/services/etlService', () => ({
   getCollections: jest.fn().mockResolvedValue({
@@ -20,6 +21,7 @@ describe('Dashboard.vue', () => {
   test('renders dashboard title', () => {
     const wrapper = mount(Dashboard, {
       global: {
+        plugins: [createTestI18n()],
         stubs: { 'router-link': true }
       }
     })
@@ -30,6 +32,7 @@ describe('Dashboard.vue', () => {
   test('displays KPI structure', () => {
     const wrapper = mount(Dashboard, {
       global: {
+        plugins: [createTestI18n()],
         stubs: { 'router-link': true }
       }
     })
@@ -41,6 +44,7 @@ describe('Dashboard.vue', () => {
   test('initializes with correct defaults', () => {
     const wrapper = mount(Dashboard, {
       global: {
+        plugins: [createTestI18n()],
         stubs: { 'router-link': true }
       }
     })
